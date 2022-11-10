@@ -23,6 +23,7 @@ namespace bfide {
         m_open = false;
     }
     void File::save() {
+        std::cout << "SAVE\n";
         std::ofstream out(m_path);
         out << m_content;
         out.close();

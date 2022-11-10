@@ -28,6 +28,6 @@ namespace bfide {
     private:
         std::filesystem::path m_path;
         std::string m_name, m_content;
-        bool m_open, m_edited;
+        bool m_open = false, m_edited = false;
     };
 }

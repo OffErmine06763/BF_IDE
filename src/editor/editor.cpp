@@ -47,7 +47,7 @@ namespace bfide {
 
 		renderTopBar(windowSize, windowPos);
 		renderFolderTree(windowSize, windowPos);
-        renderFilesEditor(windowSize, windowPos);
+		renderFilesEditor(windowSize, windowPos);
 
 		if (show_example) {
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -90,11 +90,20 @@ namespace bfide {
 	}
 
 	void Editor::renderTopBar(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSize({ windowSize.x, windowSize.y * 0.1f });
-		ImGui::SetNextWindowPos({ windowPos.x, windowPos.y });
-		ImGui::Begin("Top Bar", new bool, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-		if (ImGui::Button("show tutorial")) {
+		ImGui::SetNextWindowSize({ windowSize.x, windowSize.y * 0.1f }, ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos({ windowPos.x, windowPos.y }, ImGuiCond_FirstUseEver);
+		ImGui::Begin("Top Bar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+		if (ImGui::Button("Show tutorial")) {
 			show_example = !show_example;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Reset layout")) {
+            ImGui::SetWindowSize({ windowSize.x, windowSize.y * 0.1f });
+            ImGui::SetWindowPos({ windowPos.x, windowPos.y });
+            ImGui::SetWindowSize("Folder Explorer", { windowSize.x * 0.2f, windowSize.y * 0.9f });
+            ImGui::SetWindowPos("Folder Explorer", { windowPos.x, windowPos.y + windowSize.y * 0.1f });
+            ImGui::SetWindowSize("Editor", { windowSize.x * 0.8f, windowSize.y * 0.9f });
+            ImGui::SetWindowPos("Editor", { windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f });
 		}
 		ImGui::SameLine();
 		ImGui::Button("Compile");
@@ -103,10 +112,11 @@ namespace bfide {
 		ImGui::End();
 	}
 	void Editor::renderFolderTree(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSize({ windowSize.x * 0.2f, windowSize.y * 0.9f });
-		ImGui::SetNextWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
+		ImGui::SetNextWindowSize({ windowSize.x * 0.2f, windowSize.y * 0.9f }, ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f }, ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSizeConstraints({ 0.0f, windowSize.y * 0.9f }, { windowSize.x * 0.9f, windowSize.y * 0.9f });
-		ImGui::Begin("Folder Explorer", new bool);
+		ImGui::Begin("Folder Explorer", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+		ImGui::Text("Folder Explorer");
 		if (m_isFolderOpen) {
 			renderFolder(&m_baseFolder);
 		}
@@ -118,111 +128,103 @@ namespace bfide {
 	void Editor::renderFolder(const PathNode* path) {
 		if (ImGui::TreeNode(path->name.c_str())) {
 			for (const PathNode& folder : path->folders) {
-    			renderFolder(&folder);
+				renderFolder(&folder);
 			}
-            for (const PathNode& file : path->files) {
-                if (ImGui::Selectable(file.name.c_str(), new bool, ImGuiSelectableFlags_AllowDoubleClick)) {
-                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                        File editorFile = File(file.m_path);
-                        m_openedFiles.push_back(editorFile);
-                        editorFile.open();
-                    }
-                }
-            }
+			for (const PathNode& file : path->files) {
+				if (ImGui::Selectable(file.name.c_str(), new bool, ImGuiSelectableFlags_AllowDoubleClick)) {
+					if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+						File editorFile = File(file.m_path);
+						editorFile.open();
+						m_openedFiles.push_back(editorFile);
+					}
+				}
+			}
 			ImGui::TreePop();
 		}
 	}
-    void Editor::renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos) {
-        ImGui::SetNextWindowSize({ windowSize.x * 0.8f, windowSize.y * 0.9f });
-        ImGui::SetNextWindowPos({ windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f });
-        ImGui::Begin("Editor", new bool, ImGuiWindowFlags_NoTitleBar);
+	void Editor::renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos) {
+		ImGui::SetNextWindowSize({ windowSize.x * 0.8f, windowSize.y * 0.9f }, ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos({ windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f }, ImGuiCond_FirstUseEver);
+		ImGui::Begin("Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
-        if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
-            for (File& file : m_openedFiles) {
-                if (!file.isOpen())
-                    continue;
-
-                ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
-                bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
-
-                // Cancel attempt to close when unsaved add to save queue so we can display a popup.
-                if (!file.isOpen() && file.isEdited())
-                {
-                    file.open();
-                }
-
-                if (ImGui::BeginPopupContextItem()) {
-                    char buf[256];
-                    sprintf_s(buf, "Save %s", file.getName());
-                    if (ImGui::MenuItem(buf, "CTRL+S", false, file.isOpen()))
-                        file.save();
-                    if (ImGui::MenuItem("Close", "CTRL+W", false, file.isOpen()))
-                        file.close();
-                    ImGui::EndPopup();
-                }
-
-                if (visible)
-                {
-                    ImGui::InputTextMultiline("##", file.getContentRef());
-                    ImGui::EndTabItem();
-                }
-            }
-
-            ImGui::EndTabBar();
-        }
-
-        ImGui::End();
-    }
-
-
-    /*
-	void Editor::renderFilesTab(ImVec2& windowSize, ImVec2& windowPos) {
-        ImGui::SetNextWindowSize({ windowSize.x * 0.8f, windowSize.y * 0.9f });
-        ImGui::SetNextWindowPos({ windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f });
-        ImGui::Begin("Editor", new bool, ImGuiWindowFlags_NoTitleBar);
-		if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_Reorderable))
-		{
-			// [DEBUG] Stress tests
-			//if ((ImGui::GetFrameCount() % 30) == 0) docs[1].Open ^= 1;            // [DEBUG] Automatically show/hide a tab. Test various interactions e.g. dragging with this on.
-			//if (ImGui::GetIO().KeyCtrl) ImGui::SetTabItemSelected(docs[1].Name);  // [DEBUG] Test SetTabItemSelected(), probably not very useful as-is anyway..
-
-			// Submit Tabs
-			for (int doc_n = 0; doc_n < m_openedFiles.size(); doc_n++)
-			{
-				File* doc = m_openedFiles[doc_n];
-				if (!doc->isOpen())
+		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
+			for (File& file : m_openedFiles) {
+				if (!file.isOpen())
 					continue;
 
-				ImGuiTabItemFlags tab_flags = (doc->isDirty() ? ImGuiTabItemFlags_UnsavedDocument : 0);
-				bool visible = ImGui::BeginTabItem(doc->name.c_str(), doc->isOpenRef(), tab_flags);
+				ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
+				bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
 
 				// Cancel attempt to close when unsaved add to save queue so we can display a popup.
-				if (!doc->isOpen() && doc->isDirty())
+				if (!file.isOpen())
 				{
-                    doc->open();
-					doc->queueClose();
+                    if (file.isEdited()) {
+					    file.open();
+                        m_closeQueue.push_back(&file);
+                    }
+                    else
+                        file.close();
 				}
 
-                if (ImGui::BeginPopupContextItem()) {
-                    char buf[256];
-                    sprintf_s(buf, "Save %s", doc->name);
-                    if (ImGui::MenuItem(buf, "CTRL+S", false, doc->isOpen()))
-                        doc->save();
-                    if (ImGui::MenuItem("Close", "CTRL+W", false, doc->isOpen()))
-                        doc->queueClose();
-                    ImGui::EndPopup();
-                }
+				if (ImGui::BeginPopupContextItem()) {
+                    std::cout << "ciao\n";
+					char buf[256];
+					sprintf_s(buf, "Save %s", file.getName());
+					if (ImGui::MenuItem(buf, "CTRL+S", false, file.isOpen()))
+						file.save();
+					if (ImGui::MenuItem("Close", "CTRL+W", false, file.isOpen()))
+						file.close();
+					ImGui::EndPopup();
+				}
 
-                if (visible)
+				if (visible)
 				{
-                    ImGui::InputTextMultiline("##", &doc->content);
+					ImGui::InputTextMultiline("##", file.getContentRef());
 					ImGui::EndTabItem();
 				}
 			}
 
 			ImGui::EndTabBar();
 		}
-        ImGui::End();
+
+        // save changes popup;
+        if (m_closeQueue.size() > 0) {
+            if (!ImGui::IsPopupOpen("Save?"))
+                ImGui::OpenPopup("Save?");
+            if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("Save change to the following items?");
+                float item_height = ImGui::GetTextLineHeightWithSpacing();
+                if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
+                    for (int n = 0; n < m_closeQueue.size(); n++)
+                        ImGui::Text("%s", m_closeQueue[n]->getName());
+                    ImGui::EndChildFrame();
+                }
+
+                ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
+                if (ImGui::Button("Yes", button_size)) {
+                    for (File* file : m_closeQueue) {
+                        file->save();
+                        file->close();
+                    }
+                    m_closeQueue.clear();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("No", button_size)) {
+                    for (File* file : m_closeQueue)
+                        file->close();
+                    m_closeQueue.clear();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel", button_size)) {
+                    m_closeQueue.clear();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+        }
+
+		ImGui::End();
 	}
-    */
 }
