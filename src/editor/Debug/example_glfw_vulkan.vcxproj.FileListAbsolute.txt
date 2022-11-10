@@ -1,0 +1,2 @@
+C:\Users\aless\Documents\Docs_offline\Dev\BF_IDE\examples\example_glfw_vulkan\Debug\example_glfw_vulkan.exe
+C:\Users\aless\Documents\Docs_offline\Dev\imgui\examples\example_glfw_vulkan\Debug\example_glfw_vulkan.exe
