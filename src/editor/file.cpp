@@ -9,13 +9,14 @@ namespace bfide {
 		m_name = path.filename().string();
 	}
 
+    void File::load() {
+        std::ifstream in(m_path.string());
+        std::stringstream ss;
+        ss << in.rdbuf();
+        m_content = ss.str();
+        in.close();
+    }
 	void File::open() {
-		std::ifstream in(m_path.string());
-		std::stringstream ss;
-		ss << in.rdbuf();
-		m_content = ss.str();
-		in.close();
-
         m_open = true;
 	}
     void File::close() {
@@ -23,7 +24,6 @@ namespace bfide {
         m_open = false;
     }
     void File::save() {
-        std::cout << "SAVE\n";
         std::ofstream out(m_path);
         out << m_content;
         out.close();

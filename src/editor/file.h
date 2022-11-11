@@ -7,6 +7,7 @@ namespace bfide {
     public:
         File(std::filesystem::path path);
 
+        void load();
         void open();
         bool inline isOpen() { return m_open; }
         bool* isOpenRef() { return &m_open; }
@@ -14,6 +15,7 @@ namespace bfide {
         bool inline isEdited() { return m_edited; }
         void save();
 
+        void setEdited() { m_edited = true; }
         void setName(std::string& new_name);
         std::string inline getName() { return m_name; }
         std::string inline getContent() { return m_content; }

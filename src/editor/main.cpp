@@ -478,6 +478,7 @@ int main(int, char**)
 
 	// Our state
 	bfide::Editor editor;
+    editor.init(window);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window))

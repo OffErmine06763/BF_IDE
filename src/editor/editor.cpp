@@ -6,31 +6,69 @@
 
 namespace bfide {
 	const std::string Editor::DATA_FOLDER_KEY = "folder";
+	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
 		m_code = "+[----->+++<]>+.+.[--->+<]>---.+[----->+<]>.++.--.";
 
 		std::ifstream in("data.bfidedata");
-		char line[1024];
-		while (in.getline(line, 1024).gcount() > 0) {
-			std::string linestr(line);
+		if (in.is_open()) {
 			std::string field, value;
-			int openInd = linestr.find('\"'), closeInd = linestr.find('\"', openInd + 1);
-			field = linestr.substr(openInd + 1, closeInd - openInd - 1);
-			openInd = linestr.find('\"', closeInd + 1);
-			closeInd = linestr.find('\"', openInd + 1);
-			value = linestr.substr(openInd + 1, closeInd - openInd - 1);
+			while (in >> field) {
+				in >> value >> value;
+				/*
+				int openInd = linestr.find('\"'), closeInd = linestr.find('\"', openInd + 1);
+				field = linestr.substr(openInd + 1, closeInd - openInd - 1);
+				openInd = linestr.find('\"', closeInd + 1);
+				closeInd = linestr.find('\"', openInd + 1);
+				value = linestr.substr(openInd + 1, closeInd - openInd - 1);
+				*/
 
-			m_data[field] = value;
+				m_data[field] = value;
+			}
+			in.close();
+
+
+			m_isFolderOpen = m_data.find(DATA_FOLDER_KEY) != m_data.end();
+			if (m_isFolderOpen) {
+				bfide::PathNode node(std::filesystem::path(m_data.find(DATA_FOLDER_KEY)->second));
+				m_baseFolder = node;
+			}
+			m_firstOpen = m_data.find(DATA_OPENED_KEY) == m_data.end();
+			if (m_firstOpen) {
+				m_data.insert({ DATA_OPENED_KEY, "true" });
+			}
 		}
-		in.close();
+	}
 
-
-		m_isFolderOpen = m_data.find(DATA_FOLDER_KEY) != m_data.end();
-		if (m_isFolderOpen) {
-			bfide::PathNode node(std::filesystem::path(m_data.find(DATA_FOLDER_KEY)->second));
-			m_baseFolder = node;
+	Editor::~Editor() {
+		std::ofstream out("data.bfidedata");
+		for (const auto& entry : m_data) {
+			out << entry.first << " = " << entry.second << '\n';
 		}
+		out.close();
+	}
+
+	void Editor::init(GLFWwindow* window) {
+		if (m_firstOpen) {
+			int windowWidth, windowHeight, windowPosX, windowPosY;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glfwGetWindowPos(window, &windowPosX, &windowPosY);
+			folderTreeSize = { windowWidth * 0.2f, windowHeight * 0.9f };
+			editorSize = { windowWidth * 0.8f, windowHeight * 0.5f };
+			consoleSize = { windowWidth * 0.8f, windowHeight * 0.4f };
+		}
+	}
+
+	void resetLayout(ImVec2& windowSize, ImVec2& windowPos) {
+		ImGui::SetWindowSize({ windowSize.x, windowSize.y * 0.1f });
+		ImGui::SetWindowPos({ windowPos.x, windowPos.y });
+		ImGui::SetWindowSize("Folder Explorer", { windowSize.x * 0.2f, windowSize.y * 0.9f });
+		ImGui::SetWindowPos("Folder Explorer", { windowPos.x, windowPos.y + windowSize.y * 0.1f });
+		ImGui::SetWindowSize("Editor", { windowSize.x * 0.8f, windowSize.y * 0.5f });
+		ImGui::SetWindowPos("Editor", { windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f });
+		ImGui::SetWindowSize("Console", { windowSize.x * 0.8f, windowSize.y * 0.4f });
+		ImGui::SetWindowPos("Console", { windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.6f });
 	}
 
 	void Editor::render(GLFWwindow* window) {
@@ -48,6 +86,11 @@ namespace bfide {
 		renderTopBar(windowSize, windowPos);
 		renderFolderTree(windowSize, windowPos);
 		renderFilesEditor(windowSize, windowPos);
+		renderConsole(windowSize, windowPos);
+
+        prevFolderTreeSize = folderTreeSize;
+        prevEditorSize = editorSize;
+        prevConsoleSize = consoleSize;
 
 		if (show_example) {
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -98,12 +141,7 @@ namespace bfide {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Reset layout")) {
-            ImGui::SetWindowSize({ windowSize.x, windowSize.y * 0.1f });
-            ImGui::SetWindowPos({ windowPos.x, windowPos.y });
-            ImGui::SetWindowSize("Folder Explorer", { windowSize.x * 0.2f, windowSize.y * 0.9f });
-            ImGui::SetWindowPos("Folder Explorer", { windowPos.x, windowPos.y + windowSize.y * 0.1f });
-            ImGui::SetWindowSize("Editor", { windowSize.x * 0.8f, windowSize.y * 0.9f });
-            ImGui::SetWindowPos("Editor", { windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f });
+			resetLayout(windowSize, windowPos);
 		}
 		ImGui::SameLine();
 		ImGui::Button("Compile");
@@ -112,10 +150,25 @@ namespace bfide {
 		ImGui::End();
 	}
 	void Editor::renderFolderTree(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSize({ windowSize.x * 0.2f, windowSize.y * 0.9f }, ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f }, ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSizeConstraints({ 0.0f, windowSize.y * 0.9f }, { windowSize.x * 0.9f, windowSize.y * 0.9f });
 		ImGui::Begin("Folder Explorer", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+
+		if (prevEditorSize.x != editorSize.x ) {
+            ImVec2 size = { windowSize.x - editorSize.x, windowSize.y * 0.9f };
+			ImGui::SetWindowSize(size);
+            ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
+            folderTreeSize = size;
+		}
+		else if (prevConsoleSize.x != consoleSize.x) {
+            ImVec2 size = { windowSize.x - consoleSize.x, windowSize.y * 0.9f };
+			ImGui::SetWindowSize({ windowSize.x - consoleSize.x, windowSize.y * 0.9f });
+            ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
+            folderTreeSize = size;
+		}
+        else {
+            folderTreeSize = ImGui::GetWindowSize();
+        }
+
 		ImGui::Text("Folder Explorer");
 		if (m_isFolderOpen) {
 			renderFolder(&m_baseFolder);
@@ -131,9 +184,10 @@ namespace bfide {
 				renderFolder(&folder);
 			}
 			for (const PathNode& file : path->files) {
-				if (ImGui::Selectable(file.name.c_str(), new bool, ImGuiSelectableFlags_AllowDoubleClick)) {
+				if (ImGui::Selectable(file.name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 					if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 						File editorFile = File(file.m_path);
+						editorFile.load();
 						editorFile.open();
 						m_openedFiles.push_back(editorFile);
 					}
@@ -142,10 +196,25 @@ namespace bfide {
 			ImGui::TreePop();
 		}
 	}
+	int fileInputCallback(ImGuiInputTextCallbackData* data) {
+		File* currfile = (File*)data->UserData;
+		currfile->setEdited();
+		return 0;
+	}
 	void Editor::renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSize({ windowSize.x * 0.8f, windowSize.y * 0.9f }, ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowPos({ windowPos.x + windowSize.x * 0.2f, windowPos.y + windowSize.y * 0.1f }, ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSizeConstraints({ windowSize.x - folderTreeSize.x, windowSize.y * 0.15f }, { windowSize.x - folderTreeSize.x, windowSize.y * 0.95f });
 		ImGui::Begin("Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+
+		if (folderTreeSize.x != prevFolderTreeSize.x) {
+            ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.5f }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f };
+			ImGui::SetWindowSize(size);
+			ImGui::SetWindowPos(pos);
+            editorSize = size;
+		}
+        else {
+		    editorSize = ImGui::GetWindowSize();
+        }
+
 
 		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
 			for (File& file : m_openedFiles) {
@@ -158,16 +227,16 @@ namespace bfide {
 				// Cancel attempt to close when unsaved add to save queue so we can display a popup.
 				if (!file.isOpen())
 				{
-                    if (file.isEdited()) {
-					    file.open();
-                        m_closeQueue.push_back(&file);
-                    }
-                    else
-                        file.close();
+					if (file.isEdited()) {
+						file.open();
+						m_closeQueue.push_back(&file);
+					}
+					else
+						file.close();
 				}
 
 				if (ImGui::BeginPopupContextItem()) {
-                    std::cout << "ciao\n";
+					std::cout << "ciao\n";
 					char buf[256];
 					sprintf_s(buf, "Save %s", file.getName());
 					if (ImGui::MenuItem(buf, "CTRL+S", false, file.isOpen()))
@@ -179,7 +248,7 @@ namespace bfide {
 
 				if (visible)
 				{
-					ImGui::InputTextMultiline("##", file.getContentRef());
+					ImGui::InputTextMultiline("##", file.getContentRef(), { editorSize.x * 0.98f, editorSize.y * 0.9f }, ImGuiInputTextFlags_CallbackEdit, fileInputCallback, &file);
 					ImGui::EndTabItem();
 				}
 			}
@@ -187,44 +256,59 @@ namespace bfide {
 			ImGui::EndTabBar();
 		}
 
-        // save changes popup;
-        if (m_closeQueue.size() > 0) {
-            if (!ImGui::IsPopupOpen("Save?"))
-                ImGui::OpenPopup("Save?");
-            if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                ImGui::Text("Save change to the following items?");
-                float item_height = ImGui::GetTextLineHeightWithSpacing();
-                if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
-                    for (int n = 0; n < m_closeQueue.size(); n++)
-                        ImGui::Text("%s", m_closeQueue[n]->getName());
-                    ImGui::EndChildFrame();
-                }
+		// save changes popup;
+		if (m_closeQueue.size() > 0) {
+			if (!ImGui::IsPopupOpen("Save?"))
+				ImGui::OpenPopup("Save?");
+			if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+				ImGui::Text("Save change to the following items?");
+				float item_height = ImGui::GetTextLineHeightWithSpacing();
+				if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
+					for (File* file : m_closeQueue)
+						ImGui::Text(file->getName().c_str());
+					ImGui::EndChildFrame();
+				}
 
-                ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
-                if (ImGui::Button("Yes", button_size)) {
-                    for (File* file : m_closeQueue) {
-                        file->save();
-                        file->close();
-                    }
-                    m_closeQueue.clear();
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("No", button_size)) {
-                    for (File* file : m_closeQueue)
-                        file->close();
-                    m_closeQueue.clear();
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel", button_size)) {
-                    m_closeQueue.clear();
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-        }
+				ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
+				if (ImGui::Button("Yes", button_size)) {
+					for (File* file : m_closeQueue) {
+						file->save();
+						file->close();
+					}
+					m_closeQueue.clear();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("No", button_size)) {
+					for (File* file : m_closeQueue)
+						file->close();
+					m_closeQueue.clear();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Cancel", button_size)) {
+					m_closeQueue.clear();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+		}
 
 		ImGui::End();
+	}
+	void Editor::renderConsole(ImVec2& windowSize, ImVec2& windowPos) {
+		ImGui::Begin("Console", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+
+		if (folderTreeSize.x != prevFolderTreeSize.x || editorSize.y != prevEditorSize.y) {
+            ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.9f - editorSize.y }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + editorSize.y + windowSize.y * 0.1f };
+			ImGui::SetWindowSize(size);
+			ImGui::SetWindowPos(pos);
+            consoleSize = size;
+		}
+        else {
+		    consoleSize = ImGui::GetWindowSize();
+        }
+
+        ImGui::End();
 	}
 }
