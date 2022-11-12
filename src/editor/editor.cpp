@@ -55,7 +55,7 @@ namespace bfide {
 			folderTreeSize = { windowWidth * 0.2f, windowHeight * 0.9f };
 			editorSize = { windowWidth * 0.8f, windowHeight * 0.5f };
 			consoleSize = { windowWidth * 0.8f, windowHeight * 0.4f };
-        }
+		}
 	}
 
 	void resetLayout(ImVec2& windowSize, ImVec2& windowPos) {
@@ -143,11 +143,12 @@ namespace bfide {
 		ImGui::Button("Run");
 		ImGui::End();
 	}
+
 	void Editor::renderFolderTree(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSizeConstraints({ 0.0f, windowSize.y * 0.9f }, { windowSize.x * 0.9f, windowSize.y * 0.9f });
+		ImGui::SetNextWindowSizeConstraints({ windowSize.x * 0.1f, windowSize.y * 0.9f }, { windowSize.x * 0.9f, windowSize.y * 0.9f });
 		ImGui::Begin("Folder Explorer", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
-        prevFolderTreeSize = folderTreeSize;
+		prevFolderTreeSize = folderTreeSize;
 		if (prevEditorSize.x != editorSize.x ) {
 			ImVec2 size = { windowSize.x - editorSize.x, windowSize.y * 0.9f };
 			ImGui::SetWindowSize(size);
@@ -191,30 +192,31 @@ namespace bfide {
 			ImGui::TreePop();
 		}
 	}
+
 	int fileInputCallback(ImGuiInputTextCallbackData* data) {
 		File* currfile = (File*)data->UserData;
 		currfile->setEdited();
 		return 0;
 	}
 	void Editor::renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos) {
-		ImGui::SetNextWindowSizeConstraints({ windowSize.x - folderTreeSize.x, windowSize.y * 0.15f }, { windowSize.x - folderTreeSize.x, windowSize.y * 0.95f });
+		ImGui::SetNextWindowSizeConstraints({ windowSize.x * 0.1f, windowSize.y * 0.1f }, { windowSize.x * 0.9f, windowSize.y * 0.8f });
 		ImGui::Begin("Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
-        prevEditorSize = editorSize;
+		prevEditorSize = editorSize;
 		if (folderTreeSize.x != prevFolderTreeSize.x) {
 			ImVec2 size = ImGui::GetWindowSize(), pos = {windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f};
-            size.x = windowSize.x - folderTreeSize.x;
+			size.x = windowSize.x - folderTreeSize.x;
 			ImGui::SetWindowSize(size);
 			ImGui::SetWindowPos(pos);
 			editorSize = size;
 		}
-        else if (consoleSize.y != prevConsoleSize.y) {
-            ImVec2 size = ImGui::GetWindowSize(), pos = { windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f };
-            size.y = windowSize.y * 0.9f - consoleSize.y;
-            ImGui::SetWindowSize(size);
-            ImGui::SetWindowPos(pos);
-            editorSize = size;
-        }
+		else if (consoleSize.y != prevConsoleSize.y) {
+			ImVec2 size = ImGui::GetWindowSize(), pos = { windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f };
+			size.y = windowSize.y * 0.9f - consoleSize.y;
+			ImGui::SetWindowSize(size);
+			ImGui::SetWindowPos(pos);
+			editorSize = size;
+		}
 		else {
 			editorSize = ImGui::GetWindowSize();
 		}
@@ -228,9 +230,22 @@ namespace bfide {
 				ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
 				bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
 
+				if (ImGui::BeginPopupContextItem()) {
+					if (ImGui::MenuItem("Save", "CTRL+S", false, file.isOpen()))
+						file.save();
+					if (ImGui::MenuItem("Close", "CTRL+W", false, file.isOpen()))
+						file.wantClose();
+					ImGui::EndPopup();
+				}
+				if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+					if (ImGui::IsKeyPressed(ImGuiKey_S, false))
+						file.save();
+					if (ImGui::IsKeyPressed(ImGuiKey_W, false))
+						file.wantClose();
+				}
+
 				// Cancel attempt to close when unsaved add to save queue so we can display a popup.
-				if (!file.isOpen())
-				{
+				if (!file.isOpen() || file.toClose()) {
 					if (file.isEdited()) {
 						file.open();
 						m_closeQueue.push_back(&file);
@@ -239,20 +254,8 @@ namespace bfide {
 						file.close();
 				}
 
-				if (ImGui::BeginPopupContextItem()) {
-					std::cout << "ciao\n";
-					char buf[256];
-					sprintf_s(buf, "Save %s", file.getName());
-					if (ImGui::MenuItem(buf, "CTRL+S", false, file.isOpen()))
-						file.save();
-					if (ImGui::MenuItem("Close", "CTRL+W", false, file.isOpen()))
-						file.close();
-					ImGui::EndPopup();
-				}
-
-				if (visible)
-				{
-					ImGui::InputTextMultiline("##", file.getContentRef(), { editorSize.x * 0.98f, editorSize.y * 0.9f }, ImGuiInputTextFlags_CallbackEdit, fileInputCallback, &file);
+				if (visible) {
+					renderFile(file);
 					ImGui::EndTabItem();
 				}
 			}
@@ -260,58 +263,64 @@ namespace bfide {
 			ImGui::EndTabBar();
 		}
 
-		// save changes popup;
-		if (m_closeQueue.size() > 0) {
-			if (!ImGui::IsPopupOpen("Save?"))
-				ImGui::OpenPopup("Save?");
-			if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-				ImGui::Text("Save change to the following items?");
-				float item_height = ImGui::GetTextLineHeightWithSpacing();
-				if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
-					for (File* file : m_closeQueue)
-						ImGui::Text(file->getName().c_str());
-					ImGui::EndChildFrame();
-				}
-
-				ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
-				if (ImGui::Button("Yes", button_size)) {
-					for (File* file : m_closeQueue) {
-						file->save();
-						file->close();
-					}
-					m_closeQueue.clear();
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("No", button_size)) {
-					for (File* file : m_closeQueue)
-						file->close();
-					m_closeQueue.clear();
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Cancel", button_size)) {
-					m_closeQueue.clear();
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::EndPopup();
-			}
-		}
+		if (m_closeQueue.size() > 0)
+			renderFileSavePopup();
 
 		ImGui::End();
 	}
+	void Editor::renderFile(File& file) {
+		ImGui::InputTextMultiline("##", file.getContentRef(), { editorSize.x * 0.9f, editorSize.y * 0.9f }, ImGuiInputTextFlags_CallbackEdit, fileInputCallback, &file);
+	}
+	void Editor::renderFileSavePopup() {
+		if (!ImGui::IsPopupOpen("Save?"))
+			ImGui::OpenPopup("Save?");
+		if (ImGui::BeginPopupModal("Save?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::Text("Save change to the following items?");
+			float item_height = ImGui::GetTextLineHeightWithSpacing();
+			if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
+				for (File* file : m_closeQueue)
+					ImGui::Text(file->getName().c_str());
+				ImGui::EndChildFrame();
+			}
+
+			ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
+			if (ImGui::Button("Yes", button_size)) {
+				for (File* file : m_closeQueue) {
+					file->save();
+					file->close();
+				}
+				m_closeQueue.clear();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("No", button_size)) {
+				for (File* file : m_closeQueue)
+					file->close();
+				m_closeQueue.clear();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", button_size)) {
+				m_closeQueue.clear();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+	}
+
 	void Editor::renderConsole(ImVec2& windowSize, ImVec2& windowPos) {
+		ImGui::SetNextWindowSizeConstraints({ windowSize.x * 0.1f, windowSize.y * 0.1f }, { windowSize.x * 0.9f, windowSize.y * 0.8f });
 		ImGui::Begin("Console", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
 		if (folderTreeSize.x != prevFolderTreeSize.x || editorSize.y != prevEditorSize.y || consoleSize.x != prevConsoleSize.x || consoleSize.y != prevConsoleSize.y) {
-            prevConsoleSize = consoleSize;
+			prevConsoleSize = consoleSize;
 			ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.9f - editorSize.y }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + editorSize.y + windowSize.y * 0.1f };
 			ImGui::SetWindowSize(size);
 			ImGui::SetWindowPos(pos);
 			consoleSize = size;
 		}
 		else {
-            prevConsoleSize = consoleSize;
+			prevConsoleSize = consoleSize;
 			consoleSize = ImGui::GetWindowSize();
 		}
 

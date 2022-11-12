@@ -18,10 +18,12 @@ namespace bfide {
     }
 	void File::open() {
         m_open = true;
+        m_wantClose = false;
 	}
     void File::close() {
         m_content = "";
         m_open = false;
+        m_wantClose = false;
     }
     void File::save() {
         std::ofstream out(m_path);

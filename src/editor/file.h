@@ -12,6 +12,8 @@ namespace bfide {
         bool inline isOpen() { return m_open; }
         bool* isOpenRef() { return &m_open; }
         void close();
+        void wantClose() { m_wantClose = true; }
+        bool toClose() { return m_wantClose; }
         bool inline isEdited() { return m_edited; }
         void save();
 
@@ -30,6 +32,6 @@ namespace bfide {
     private:
         std::filesystem::path m_path;
         std::string m_name, m_content;
-        bool m_open = false, m_edited = false;
+        bool m_open = false, m_edited = false, m_wantClose = false;
     };
 }

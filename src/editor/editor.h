@@ -31,6 +31,8 @@ namespace bfide {
 		void renderFolderTree(ImVec2& windowSize, ImVec2& windowPos);
 		void renderFolder(const PathNode* path);
 		void renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos);
+		void renderFile(File& file);
+		void renderFileSavePopup();
         void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
 
 	private:
