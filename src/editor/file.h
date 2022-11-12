@@ -23,11 +23,6 @@ namespace bfide {
         std::string inline getContent() const { return m_content; }
         std::string* getContentRef() { return &m_content; }
         std::string getPath() const { return m_path.string(); }
-    public:
-        
-
-    private:
-
 
     private:
         std::filesystem::path m_path;

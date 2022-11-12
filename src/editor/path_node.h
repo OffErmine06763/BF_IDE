@@ -8,12 +8,14 @@
 namespace bfide {
 	class PathNode {
 	public:
-		PathNode(std::filesystem::path path);
+		PathNode(std::filesystem::path path, PathNode* parent = nullptr);
 		PathNode();
 
 		void update();
         std::filesystem::path getPath() const { return m_path; }
         std::string getPathStr() const { return m_path.string(); }
+        void rename();
+        void del();
 
 	public:
 		bool operator==(const PathNode& other) const {
@@ -38,7 +40,10 @@ namespace bfide {
 		std::set<PathNode> folders, files;
 
     private:
-		std::filesystem::path m_path;
+        void deleteChildren(PathNode* children);
 
+    private:
+		std::filesystem::path m_path;
+        PathNode* m_parent = nullptr;
 	};
 }

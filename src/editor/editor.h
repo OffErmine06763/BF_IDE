@@ -29,6 +29,7 @@ namespace bfide {
 	private:
 		void renderTopBar(ImVec2& windowSize, ImVec2& windowPos);
 		void renderFolderTree(ImVec2& windowSize, ImVec2& windowPos);
+        void openInEditor(const PathNode& file);
 		void renderFolder(const PathNode* path);
 		void renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos);
 		void renderFile(File& file);

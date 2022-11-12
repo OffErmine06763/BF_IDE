@@ -3,7 +3,8 @@
 #include <unordered_set>
 
 namespace bfide {
-	PathNode::PathNode(std::filesystem::path path) {
+	PathNode::PathNode(std::filesystem::path path, PathNode* parent /* = nullptr */) {
+		m_parent = parent;
 		m_path = path;
 		name = path.string();
 		int pos = -1;
@@ -15,57 +16,54 @@ namespace bfide {
 
 		if (is_folder) {
 			for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(path)) {
-                if (entry.is_regular_file())
-                    files.insert(PathNode(entry.path()));
-                else
-                    folders.insert(PathNode(entry.path()));
-				/*
-                if (entry.is_regular_file())
-					files.insert({ entry.path().string(), PathNode(entry.path()) });
+				if (entry.is_regular_file())
+					files.insert(PathNode(entry.path()));
 				else
-					folders.insert({ entry.path().string(), PathNode(entry.path()) });
-                */
+					folders.insert(PathNode(entry.path()));
 			}
 		}
 	}
 
-	// default values should never be used/displayed
+	// default values never to be displayed
 	PathNode::PathNode()
 		: name("Error"), is_folder(false) {}
 
 	// TODO: listener for folder changes?
 	void PathNode::update() {
-        files.clear();
-        folders.clear();
-
-        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(m_path)) {
-            if (entry.is_regular_file())
-                files.insert(PathNode(entry.path()));
-            else
-                folders.insert(PathNode(entry.path()));
-        }
-
-        /*
-		std::unordered_set<std::string> new_files, new_folders;
+		files.clear();
+		folders.clear();
 
 		for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(m_path)) {
-			std::filesystem::path curr_path = entry.path();
-			std::string curr_path_str = curr_path.string();
+			if (entry.is_regular_file())
+				files.insert(PathNode(entry.path(), this));
+			else
+				folders.insert(PathNode(entry.path(), this));
+		}
+	}
 
-			if (entry.is_regular_file()) {
-                auto it = files.find(curr_path_str);
-                if (it != files.end()) { // update already indexed folders
-                    it->second.update();
-                    continue;
-                }
+	void PathNode::rename() {
 
-				new_files.insert(curr_path_str);
-			}
-			else {
-				// if (!next.contains(curr_path_str))
-				new_folders.insert(curr_path_str);
+	}
+
+	void PathNode::del() {
+		std::filesystem::remove(m_path);
+		m_parent->deleteChildren(this);
+	}
+	void PathNode::deleteChildren(PathNode* children) {
+		std::set<PathNode>::iterator node, end;
+		if (children->is_folder) {
+			node = folders.begin();
+			end = folders.end();
+		}
+		else {
+			node = files.begin();
+			end = files.end();
+		}
+		for (true; node != folders.end(); node++) {
+			if (node->getPathStr() == children->getPathStr()) {
+				folders.erase(node);
+				return;
 			}
 		}
-        */
 	}
 }
