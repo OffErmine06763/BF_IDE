@@ -34,7 +34,6 @@ namespace bfide {
         void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
 
 	private:
-		std::string m_code;
 		Console m_console;
 		std::vector<File> m_openedFiles;
 		std::vector<File*> m_closeQueue;
