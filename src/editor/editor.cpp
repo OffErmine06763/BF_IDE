@@ -9,8 +9,6 @@ namespace bfide {
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
-		m_code = "+[----->+++<]>+.+.[--->+<]>---.+[----->+<]>.++.--.";
-
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
 			std::string field, value;
@@ -57,7 +55,7 @@ namespace bfide {
 			folderTreeSize = { windowWidth * 0.2f, windowHeight * 0.9f };
 			editorSize = { windowWidth * 0.8f, windowHeight * 0.5f };
 			consoleSize = { windowWidth * 0.8f, windowHeight * 0.4f };
-		}
+        }
 	}
 
 	void resetLayout(ImVec2& windowSize, ImVec2& windowPos) {
@@ -87,10 +85,6 @@ namespace bfide {
 		renderFolderTree(windowSize, windowPos);
 		renderFilesEditor(windowSize, windowPos);
 		renderConsole(windowSize, windowPos);
-
-        prevFolderTreeSize = folderTreeSize;
-        prevEditorSize = editorSize;
-        prevConsoleSize = consoleSize;
 
 		if (show_example) {
 			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
@@ -153,21 +147,22 @@ namespace bfide {
 		ImGui::SetNextWindowSizeConstraints({ 0.0f, windowSize.y * 0.9f }, { windowSize.x * 0.9f, windowSize.y * 0.9f });
 		ImGui::Begin("Folder Explorer", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
+        prevFolderTreeSize = folderTreeSize;
 		if (prevEditorSize.x != editorSize.x ) {
-            ImVec2 size = { windowSize.x - editorSize.x, windowSize.y * 0.9f };
+			ImVec2 size = { windowSize.x - editorSize.x, windowSize.y * 0.9f };
 			ImGui::SetWindowSize(size);
-            ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
-            folderTreeSize = size;
+			ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
+			folderTreeSize = size;
 		}
 		else if (prevConsoleSize.x != consoleSize.x) {
-            ImVec2 size = { windowSize.x - consoleSize.x, windowSize.y * 0.9f };
-			ImGui::SetWindowSize({ windowSize.x - consoleSize.x, windowSize.y * 0.9f });
-            ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
-            folderTreeSize = size;
+			ImVec2 size = { windowSize.x - consoleSize.x, windowSize.y * 0.9f };
+			ImGui::SetWindowSize(size);
+			ImGui::SetWindowPos({ windowPos.x, windowPos.y + windowSize.y * 0.1f });
+			folderTreeSize = size;
 		}
-        else {
-            folderTreeSize = ImGui::GetWindowSize();
-        }
+		else {
+			folderTreeSize = ImGui::GetWindowSize();
+		}
 
 		ImGui::Text("Folder Explorer");
 		if (m_isFolderOpen) {
@@ -205,15 +200,24 @@ namespace bfide {
 		ImGui::SetNextWindowSizeConstraints({ windowSize.x - folderTreeSize.x, windowSize.y * 0.15f }, { windowSize.x - folderTreeSize.x, windowSize.y * 0.95f });
 		ImGui::Begin("Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
+        prevEditorSize = editorSize;
 		if (folderTreeSize.x != prevFolderTreeSize.x) {
-            ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.5f }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f };
+			ImVec2 size = ImGui::GetWindowSize(), pos = {windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f};
+            size.x = windowSize.x - folderTreeSize.x;
 			ImGui::SetWindowSize(size);
 			ImGui::SetWindowPos(pos);
-            editorSize = size;
+			editorSize = size;
 		}
-        else {
-		    editorSize = ImGui::GetWindowSize();
+        else if (consoleSize.y != prevConsoleSize.y) {
+            ImVec2 size = ImGui::GetWindowSize(), pos = { windowPos.x + folderTreeSize.x, windowPos.y + windowSize.y * 0.1f };
+            size.y = windowSize.y * 0.9f - consoleSize.y;
+            ImGui::SetWindowSize(size);
+            ImGui::SetWindowPos(pos);
+            editorSize = size;
         }
+		else {
+			editorSize = ImGui::GetWindowSize();
+		}
 
 
 		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
@@ -299,16 +303,18 @@ namespace bfide {
 	void Editor::renderConsole(ImVec2& windowSize, ImVec2& windowPos) {
 		ImGui::Begin("Console", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
-		if (folderTreeSize.x != prevFolderTreeSize.x || editorSize.y != prevEditorSize.y) {
-            ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.9f - editorSize.y }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + editorSize.y + windowSize.y * 0.1f };
+		if (folderTreeSize.x != prevFolderTreeSize.x || editorSize.y != prevEditorSize.y || consoleSize.x != prevConsoleSize.x || consoleSize.y != prevConsoleSize.y) {
+            prevConsoleSize = consoleSize;
+			ImVec2 size = { windowSize.x - folderTreeSize.x, windowSize.y * 0.9f - editorSize.y }, pos = { windowPos.x + folderTreeSize.x, windowPos.y + editorSize.y + windowSize.y * 0.1f };
 			ImGui::SetWindowSize(size);
 			ImGui::SetWindowPos(pos);
-            consoleSize = size;
+			consoleSize = size;
 		}
-        else {
-		    consoleSize = ImGui::GetWindowSize();
-        }
+		else {
+            prevConsoleSize = consoleSize;
+			consoleSize = ImGui::GetWindowSize();
+		}
 
-        ImGui::End();
+		ImGui::End();
 	}
 }
