@@ -96,5 +96,8 @@
     <None Include="..\..\misc\debuggers\imgui.natvis">
       <Filter>imgui</Filter>
     </None>
+    <None Include="data.bfidedata">
+      <Filter>sources\bfide</Filter>
+    </None>
   </ItemGroup>
 </Project>
