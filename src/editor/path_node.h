@@ -12,7 +12,8 @@ namespace bfide {
 		PathNode();
 
 		void update();
-
+        std::filesystem::path getPath() const { return m_path; }
+        std::string getPathStr() const { return m_path.string(); }
 
 	public:
 		bool operator==(const PathNode& other) const {
@@ -33,8 +34,11 @@ namespace bfide {
 
 	public:
 		bool is_folder;
-		std::filesystem::path m_path;
 		std::string name;
 		std::set<PathNode> folders, files;
+
+    private:
+		std::filesystem::path m_path;
+
 	};
 }

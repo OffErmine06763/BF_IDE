@@ -38,8 +38,9 @@ namespace bfide {
 	private:
 		Console m_console;
 		std::vector<File> m_openedFiles;
+        File* m_currFile;
 		std::vector<File*> m_closeQueue;
-		int m_currFile = -1, m_frame = 0;
+		int m_frame = 0;
 		PathNode m_baseFolder;
 		std::unordered_map<std::string, std::string> m_data;
 

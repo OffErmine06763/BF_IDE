@@ -182,10 +182,21 @@ namespace bfide {
 			for (const PathNode& file : path->files) {
 				if (ImGui::Selectable(file.name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 					if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-						File editorFile = File(file.m_path);
-						editorFile.load();
-						editorFile.open();
-						m_openedFiles.push_back(editorFile);
+                        bool present = false;
+                        for (const File& f : m_openedFiles) {
+                            if (f.getPath() == file.getPathStr()) {
+                                m_currFile = (File*)&f;
+                                present = true;
+                                break;
+                            }
+                        }
+                        if (present)
+                            continue;
+
+						m_openedFiles.push_back(File(file.getPath()));
+						m_currFile = &*(m_openedFiles.end() - 1);
+                        m_currFile->load();
+                        m_currFile->open();
 					}
 				}
 			}
@@ -228,7 +239,11 @@ namespace bfide {
 					continue;
 
 				ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
-				bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
+                if (&file == m_currFile) {
+                    tab_flags |= ImGuiTabItemFlags_SetSelected;
+                    m_currFile = nullptr;
+                }
+                bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
 
 				if (ImGui::BeginPopupContextItem()) {
 					if (ImGui::MenuItem("Save", "CTRL+S", false, file.isOpen()))

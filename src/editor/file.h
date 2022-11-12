@@ -19,10 +19,10 @@ namespace bfide {
 
         void setEdited() { m_edited = true; }
         void setName(std::string& new_name);
-        std::string inline getName() { return m_name; }
-        std::string inline getContent() { return m_content; }
+        std::string inline getName() const { return m_name; }
+        std::string inline getContent() const { return m_content; }
         std::string* getContentRef() { return &m_content; }
-
+        std::string getPath() const { return m_path.string(); }
     public:
         
 
