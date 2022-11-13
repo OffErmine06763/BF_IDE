@@ -9,6 +9,8 @@ namespace bfide {
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
+        m_compiler = Compiler(&m_console);
+
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
 			std::string field, value;
@@ -138,9 +140,19 @@ namespace bfide {
 			resetLayout(windowSize, windowPos);
 		}
 		ImGui::SameLine();
-		ImGui::Button("Compile");
+        if (ImGui::Button("Compile")) {
+            m_compiler.compile(m_currFile);
+        }
 		ImGui::SameLine();
-		ImGui::Button("Run");
+        if (ImGui::Button("Compile & Run")) {
+            m_compiler.compileAndExecute(m_currFile);
+        }
+        if (m_compiler.lastCompSucc()) {
+            ImGui::SameLine();
+            if (ImGui::Button("Run")) {
+                m_compiler.executeLastCompiled();
+            }
+        }
 		ImGui::End();
 	}
 
@@ -208,7 +220,7 @@ namespace bfide {
 	void Editor::openInEditor(const PathNode& file) {
 		bool present = false;
 		for (const File& f : m_openedFiles) {
-			if (f.getPath() == file.getPathStr()) {
+			if (f.getPathStr() == file.getPathStr()) {
 				m_currFile = (File*)&f;
 				present = true;
 				break;
@@ -260,7 +272,6 @@ namespace bfide {
 				ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
 				if (&file == m_currFile) {
 					tab_flags |= ImGuiTabItemFlags_SetSelected;
-					m_currFile = nullptr;
 				}
 				bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
 
@@ -357,6 +368,8 @@ namespace bfide {
 			prevConsoleSize = consoleSize;
 			consoleSize = ImGui::GetWindowSize();
 		}
+
+        m_console.render();
 
 		ImGui::End();
 	}

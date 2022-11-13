@@ -2,6 +2,7 @@
 #include "console.h"
 #include "file.h"
 #include "path_node.h"
+#include "compiler.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -37,15 +38,16 @@ namespace bfide {
         void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
 
 	private:
+        Compiler m_compiler;
 		Console m_console;
 		std::vector<File> m_openedFiles;
-        File* m_currFile;
+        File* m_currFile = nullptr;
 		std::vector<File*> m_closeQueue;
 		int m_frame = 0;
 		PathNode m_baseFolder;
 		std::unordered_map<std::string, std::string> m_data;
 
-		bool m_isFolderOpen = false, m_firstOpen;
+		bool m_isFolderOpen = false, m_firstOpen = true;
 
         ImVec2 folderTreeSize = { -1, -1 }, prevFolderTreeSize = { -1, -1 };
         ImVec2 editorSize = { -1, -1 }, prevEditorSize = { -1, -1 };
