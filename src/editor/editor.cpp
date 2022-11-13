@@ -9,7 +9,7 @@ namespace bfide {
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
-        m_compiler = Compiler(&m_console);
+		m_compiler = Compiler(&m_console);
 
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
@@ -139,20 +139,22 @@ namespace bfide {
 		if (ImGui::Button("Reset layout")) {
 			resetLayout(windowSize, windowPos);
 		}
-		ImGui::SameLine();
-        if (ImGui::Button("Compile")) {
-            m_compiler.compile(m_currFile);
-        }
-		ImGui::SameLine();
-        if (ImGui::Button("Compile & Run")) {
-            m_compiler.compileAndExecute(m_currFile);
-        }
-        if (m_compiler.lastCompSucc()) {
-            ImGui::SameLine();
-            if (ImGui::Button("Run")) {
-                m_compiler.executeLastCompiled();
-            }
-        }
+		if (m_currFile != -1) {
+			ImGui::SameLine();
+			if (ImGui::Button("Compile")) {
+				m_compiler.compile(&m_openedFiles[m_currFile]);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Compile & Run")) {
+				m_compiler.compileAndExecute(&m_openedFiles[m_currFile]);
+			}
+		}
+		if (m_compiler.lastCompSucc()) {
+			ImGui::SameLine();
+			if (ImGui::Button("Run")) {
+				m_compiler.executeLastCompiled();
+			}
+		}
 		ImGui::End();
 	}
 
@@ -192,22 +194,22 @@ namespace bfide {
 				if (ImGui::BeginPopupContextItem()) {
 					if (ImGui::MenuItem("Rename"))
 						((PathNode*)&folder)->rename();
-                    if (ImGui::MenuItem("Delete"))
-                        ((PathNode*)&folder)->del();
+					if (ImGui::MenuItem("Delete"))
+						((PathNode*)&folder)->del();
 					ImGui::EndPopup();
 				}
 				renderFolder(&folder);
 			}
 			for (const PathNode& file : path->files) {
-                if (ImGui::BeginPopupContextItem()) {
-                    if (ImGui::MenuItem("Open"))
-                        openInEditor(file);
-                    if (ImGui::MenuItem("Rename"))
-                        ((PathNode*)&file)->rename();
-                    if (ImGui::MenuItem("Delete"))
-                        ((PathNode*)&file)->del();
-                    ImGui::EndPopup();
-                }
+				if (ImGui::BeginPopupContextItem()) {
+					if (ImGui::MenuItem("Open"))
+						openInEditor(file);
+					if (ImGui::MenuItem("Rename"))
+						((PathNode*)&file)->rename();
+					if (ImGui::MenuItem("Delete"))
+						((PathNode*)&file)->del();
+					ImGui::EndPopup();
+				}
 				if (ImGui::Selectable(file.name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 					if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 						openInEditor(file);
@@ -219,9 +221,9 @@ namespace bfide {
 	}
 	void Editor::openInEditor(const PathNode& file) {
 		bool present = false;
-		for (const File& f : m_openedFiles) {
-			if (f.getPathStr() == file.getPathStr()) {
-				m_currFile = (File*)&f;
+		for (int ind = 0; ind < m_openedFiles.size(); ind++) {
+			if (m_openedFiles[ind].getPathStr() == file.getPathStr()) {
+				m_moveToFile = ind;
 				present = true;
 				break;
 			}
@@ -229,10 +231,10 @@ namespace bfide {
 		if (present)
 			return;
 
+		m_moveToFile = m_openedFiles.size();
 		m_openedFiles.push_back(File(file.getPath()));
-		m_currFile = &*(m_openedFiles.end() - 1);
-		m_currFile->load();
-		m_currFile->open();
+		m_openedFiles[m_moveToFile].load();
+		m_openedFiles[m_moveToFile].open();
 	}
 
 	int fileInputCallback(ImGuiInputTextCallbackData* data) {
@@ -263,15 +265,17 @@ namespace bfide {
 			editorSize = ImGui::GetWindowSize();
 		}
 
-
+		ImGui::Text("%d", m_currFile);
 		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
-			for (File& file : m_openedFiles) {
+			for (int ind = 0; ind < m_openedFiles.size(); ind++) {
+				File& file = m_openedFiles[ind];
 				if (!file.isOpen())
 					continue;
 
 				ImGuiTabItemFlags tab_flags = (file.isEdited() ? ImGuiTabItemFlags_UnsavedDocument : 0);
-				if (&file == m_currFile) {
+				if (ind == m_moveToFile) {
 					tab_flags |= ImGuiTabItemFlags_SetSelected;
+					m_moveToFile = -1;
 				}
 				bool visible = ImGui::BeginTabItem(file.getName().c_str(), file.isOpenRef(), tab_flags);
 
@@ -293,13 +297,16 @@ namespace bfide {
 				if (!file.isOpen() || file.toClose()) {
 					if (file.isEdited()) {
 						file.open();
-						m_closeQueue.push_back(&file);
+						m_closeQueueSave.push_back(ind);
 					}
-					else
+					else {
 						file.close();
+						m_closeQueue.push_back(ind);
+					}
 				}
 
 				if (visible) {
+					m_currFile = ind;
 					renderFile(file);
 					ImGui::EndTabItem();
 				}
@@ -308,8 +315,17 @@ namespace bfide {
 			ImGui::EndTabBar();
 		}
 
-		if (m_closeQueue.size() > 0)
+		if (m_closeQueueSave.size() > 0)
 			renderFileSavePopup();
+
+		for (int ind : m_closeQueue) {
+			m_openedFiles[ind].close();
+			m_openedFiles.erase(m_openedFiles.begin() + ind);
+			if (ind == m_currFile) {
+				m_currFile = -1;
+			}
+		}
+		m_closeQueue.clear();
 
 		ImGui::End();
 	}
@@ -323,30 +339,37 @@ namespace bfide {
 			ImGui::Text("Save change to the following items?");
 			float item_height = ImGui::GetTextLineHeightWithSpacing();
 			if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
-				for (File* file : m_closeQueue)
-					ImGui::Text(file->getName().c_str());
+				for (int ind : m_closeQueueSave)
+					ImGui::Text(m_openedFiles[ind].getName().c_str());
 				ImGui::EndChildFrame();
 			}
 
 			ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
 			if (ImGui::Button("Yes", button_size)) {
-				for (File* file : m_closeQueue) {
-					file->save();
-					file->close();
+				for (int ind : m_closeQueueSave) {
+					m_openedFiles[ind].save();
+					m_openedFiles[ind].close();
+					m_openedFiles.erase(m_openedFiles.begin() + ind);
+					if (ind == m_currFile)
+						m_currFile = -1;
 				}
-				m_closeQueue.clear();
+				m_closeQueueSave.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("No", button_size)) {
-				for (File* file : m_closeQueue)
-					file->close();
-				m_closeQueue.clear();
+				for (int ind : m_closeQueueSave) {
+					m_openedFiles[ind].close();
+					m_openedFiles.erase(m_openedFiles.begin() + ind);
+					if (ind == m_currFile)
+						m_currFile = -1;
+				}
+				m_closeQueueSave.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel", button_size)) {
-				m_closeQueue.clear();
+				m_closeQueueSave.clear();
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
@@ -369,7 +392,7 @@ namespace bfide {
 			consoleSize = ImGui::GetWindowSize();
 		}
 
-        m_console.render();
+		m_console.render();
 
 		ImGui::End();
 	}

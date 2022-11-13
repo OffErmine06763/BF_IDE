@@ -139,78 +139,6 @@ namespace bfide {
         m_lastCompSucc = save();
         return m_lastCompSucc;
     }
-	void Compiler::execute() {
-		bytes.resize(max_size, 0);
-
-		int ind = 0;
-		std::stack<int> openLoopPos;
-		for (int i = 0; i < m_code.size(); i++) {
-			char c = m_code[i];
-			int count = 0;
-
-			switch (c) {
-			case '+': bytes[ind]++;																	break;
-			case '-': bytes[ind]--;																	break;
-			case '.': m_console->write(bytes[ind]);												break;
-			case ',': std::cout << "\n$ "; int input; std::cin >> input; bytes[ind] = input;		break;
-
-			case '<':
-				if (ind == 0) {
-					std::string s(i, ' ');
-
-					m_console->setColor(Console::RED);
-					m_console->write("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + m_code + '\n' + s + "^ INDEX < 0\n");
-					m_console->setColor(Console::WHITE);
-					return;
-				}
-
-				ind--;
-				break;
-			case '>':
-				ind++;
-				if (ind == max_size) {
-					std::string s(i, ' ');
-
-					m_console->setColor(Console::RED);
-                    std::string max_size_str = "" + max_size;
-					m_console->write("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + m_code + '\n' + s + "^ INDEX > " + max_size_str + '\n');
-					m_console->setColor(Console::WHITE);
-					return;
-				}
-
-				break;
-			case '[':
-				if (bytes[ind] != 0) {
-					openLoopPos.push(i);
-					break;
-				}
-				count = 0;
-				for (int j = i + 1; j < m_code.size(); j++) {
-					if (m_code[j] == '[') {
-						count++;
-					}
-					else if (m_code[j] == ']') {
-						if (count == 0) {
-							i = j;
-							break;
-						}
-						count--;
-					}
-				}
-				break;
-
-			case ']':
-				if (bytes[ind] != 0)
-					i = openLoopPos.top();
-				else
-					openLoopPos.pop();
-				break;
-			}
-		}
-		m_console->write("\n");
-
-		bytes.clear();
-	}
 
     void Compiler::executeLastCompiled() {
         if (m_lastCompSucc) {
@@ -219,5 +147,78 @@ namespace bfide {
         else {
             m_console->write("Compile first\n");
         }
+    }
+
+    void Compiler::execute() {
+        bytes.resize(max_size, 0);
+
+        int ind = 0;
+        std::stack<int> openLoopPos;
+        for (int i = 0; i < m_code.size(); i++) {
+            char c = m_code[i];
+            int count = 0;
+
+            switch (c) {
+            case '+': bytes[ind]++;																	break;
+            case '-': bytes[ind]--;																	break;
+            case '.': m_console->write(bytes[ind]);												break;
+            case ',': std::cout << "\n$ "; int input; std::cin >> input; bytes[ind] = input;		break;
+
+            case '<':
+                if (ind == 0) {
+                    std::string s(i, ' ');
+
+                    m_console->setColor(Console::RED);
+                    m_console->write("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + m_code + '\n' + s + "^ INDEX < 0\n");
+                    m_console->setColor(Console::WHITE);
+                    return;
+                }
+
+                ind--;
+                break;
+            case '>':
+                ind++;
+                if (ind == max_size) {
+                    std::string s(i, ' ');
+
+                    m_console->setColor(Console::RED);
+                    std::string max_size_str = "" + max_size;
+                    m_console->write("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + m_code + '\n' + s + "^ INDEX > " + max_size_str + '\n');
+                    m_console->setColor(Console::WHITE);
+                    return;
+                }
+
+                break;
+            case '[':
+                if (bytes[ind] != 0) {
+                    openLoopPos.push(i);
+                    break;
+                }
+                count = 0;
+                for (int j = i + 1; j < m_code.size(); j++) {
+                    if (m_code[j] == '[') {
+                        count++;
+                    }
+                    else if (m_code[j] == ']') {
+                        if (count == 0) {
+                            i = j;
+                            break;
+                        }
+                        count--;
+                    }
+                }
+                break;
+
+            case ']':
+                if (bytes[ind] != 0)
+                    i = openLoopPos.top();
+                else
+                    openLoopPos.pop();
+                break;
+            }
+        }
+        m_console->write("\n");
+
+        bytes.clear();
     }
 }
