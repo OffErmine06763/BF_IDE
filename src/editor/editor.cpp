@@ -4,25 +4,17 @@
 #include <fstream>
 #include <filesystem>
 
-namespace bfide {
+namespace bfide { // brIDE fuck
 	const std::string Editor::DATA_FOLDER_KEY = "folder";
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
-		m_compiler = Compiler(&m_console);
-
+        m_compiler.init(&m_console);
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
 			std::string field, value;
 			while (in >> field) {
 				in >> value >> value;
-				/*
-				int openInd = linestr.find('\"'), closeInd = linestr.find('\"', openInd + 1);
-				field = linestr.substr(openInd + 1, closeInd - openInd - 1);
-				openInd = linestr.find('\"', closeInd + 1);
-				closeInd = linestr.find('\"', openInd + 1);
-				value = linestr.substr(openInd + 1, closeInd - openInd - 1);
-				*/
 
 				m_data[field] = value;
 			}
@@ -139,7 +131,7 @@ namespace bfide {
 		if (ImGui::Button("Reset layout")) {
 			resetLayout(windowSize, windowPos);
 		}
-		if (m_currFile != -1) {
+		if (m_currFile != -1 && !m_compiler.isRunning()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Compile")) {
 				m_compiler.compile(&m_openedFiles[m_currFile]);
@@ -149,12 +141,18 @@ namespace bfide {
 				m_compiler.compileAndExecute(&m_openedFiles[m_currFile]);
 			}
 		}
-		if (m_compiler.lastCompSucc()) {
+		if (m_compiler.lastCompSucc() && !m_compiler.isRunning()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Run")) {
 				m_compiler.executeLastCompiled();
 			}
 		}
+        if (m_compiler.isRunning()) {
+            ImGui::SameLine();
+            if (ImGui::Button("Stop")) {
+                m_compiler.stop();
+            }
+        }
 		ImGui::End();
 	}
 
@@ -265,7 +263,6 @@ namespace bfide {
 			editorSize = ImGui::GetWindowSize();
 		}
 
-		ImGui::Text("%d", m_currFile);
 		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
 			for (int ind = 0; ind < m_openedFiles.size(); ind++) {
 				File& file = m_openedFiles[ind];
@@ -392,7 +389,7 @@ namespace bfide {
 			consoleSize = ImGui::GetWindowSize();
 		}
 
-		m_console.render();
+		m_console.render(consoleSize);
 
 		ImGui::End();
 	}

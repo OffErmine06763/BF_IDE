@@ -14,16 +14,23 @@
 #include <unordered_map>
 
 namespace bfide {
+    class Compiler;
+    class Console;
+
 	class Editor {
 	public:
 		Editor();
         ~Editor();
         void init(GLFWwindow* window);
-		void render(GLFWwindow* window);
+
+        void render(GLFWwindow* window);
 		ImVec4 getClearColor() {
 			return clear_color;
 		}
 
+        Console* getConsole() {
+            return &m_console;
+        }
 	public:
 
 

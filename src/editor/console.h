@@ -1,8 +1,10 @@
 #pragma once
-#include <string>
 #include "imgui.h"
 
+#include <string>
+
 namespace bfide {
+
 	class Console {
 	public:
 		inline std::string& getText() { return m_text; }
@@ -11,18 +13,25 @@ namespace bfide {
 		void write(char line);
         inline void clear() { m_text = ""; }
 
-        void setColor(ImVec4 color) { }
+        bool inputReceived() { return m_inputReceived; }
+        void requestInput() { m_inputRequested = true; }
+        char consumeInput() {
+            m_inputRequested = false;
+            m_inputReceived = false;
+            return m_input;
+        }
 
-		void render();
+        void setColor(ImVec4 color) { }
+		void render(ImVec2& consoleSize);
 
 	public:
         static const ImVec4 RED, WHITE;
 
 	private:
 
-
 	private:
 		std::string m_text;
-
+        bool m_inputRequested = false, m_inputReceived = false;
+        char m_input;
 	};
 }
