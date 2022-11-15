@@ -170,12 +170,14 @@
     <ClCompile Include="..\..\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="..\..\backends\imgui_impl_vulkan.cpp" />
     <ClCompile Include="compiler.cpp" />
+    <ClCompile Include="dep_compiler.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="editor.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="path_node.cpp" />
+    <ClCompile Include="runner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h" />
@@ -184,11 +186,13 @@
     <ClInclude Include="..\..\backends\imgui_impl_glfw.h" />
     <ClInclude Include="..\..\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="compiler.h" />
+    <ClInclude Include="dep_compiler.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="editor.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="imgui_stdlib.h" />
     <ClInclude Include="path_node.h" />
+    <ClInclude Include="runner.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natvis" />

@@ -1,8 +1,9 @@
 #pragma once
-#include "console.h"
 #include "file.h"
 #include "path_node.h"
 #include "compiler.h"
+#include "console.h"
+#include "runner.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -14,23 +15,44 @@
 #include <unordered_map>
 
 namespace bfide {
-    class Compiler;
-    class Console;
-
 	class Editor {
+    public:
+        static void notifyInputReceived() {
+
+        }
+
 	public:
 		Editor();
         ~Editor();
         void init(GLFWwindow* window);
-
         void render(GLFWwindow* window);
-		ImVec4 getClearColor() {
+        ImVec4 getClearColor() {
 			return clear_color;
 		}
 
-        Console* getConsole() {
-            return &m_console;
+        void output(const std::string& line) {
+            m_console.write(line);
         }
+        void output(const char* const line) {
+            m_console.write(line);
+        }
+        void output(char line) {
+            m_console.write(line);
+        }
+
+        void requestInput() {
+
+        }
+        uint8_t consumeInput() {
+            return 0;
+        }
+        bool inputReceived() {
+            return true;
+        }
+        void setColor(const ImVec4& color) {
+            m_console.setColor(color);
+        }
+
 	public:
 
 
@@ -47,6 +69,7 @@ namespace bfide {
 	private:
         Compiler m_compiler;
 		Console m_console;
+        Runner m_runner;
 		std::vector<File> m_openedFiles;
         int m_currFile = -1, m_moveToFile = -1;
 		std::vector<int> m_closeQueue, m_closeQueueSave;

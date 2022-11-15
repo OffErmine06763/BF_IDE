@@ -1,5 +1,5 @@
 #include "console.h"
-#include "compiler.h"
+#include "editor.h"
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
@@ -44,7 +44,7 @@ namespace bfide {
                 m_inputRequested = false;
                 m_input = input;
                 m_text.push_back('\n');
-                Compiler::notifyInputReceived();
+                Editor::notifyInputReceived();
             }
             if (!found) {
                 m_text.append("\n$ ");

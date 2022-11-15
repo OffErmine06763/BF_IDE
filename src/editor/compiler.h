@@ -1,57 +1,48 @@
 #pragma once
 #include "file.h"
-#include "console.h"
-
-#include <string>
-#include <vector>
-#include <filesystem>
 #include <thread>
-#include <iostream>
 
 namespace bfide {
-    class Compiler {
-    public:
-        ~Compiler();
-        void init(Console* console);
+	class Editor;
 
-        bool compileAndExecute(File* file);
-        bool compile(File* file);
-        void executeLastCompiled();
-
-        inline bool lastCompSucc() const { return m_lastCompSucc; }
-        inline bool isRunning() const { return m_running; }
-        void stop() {
-            m_runnerThread.detach();
-            m_running = false;
-            bytes.clear();
-            m_console->write("STOPPING\n");
+	class Compiler {
+	public:
+        ~Compiler() {
+            if (m_compiling)
+                m_compilerThread.detach();
+        }
+        void init(Editor* editor) {
+            this->editor = editor;
         }
 
-        static void notifyInputReceived() {
-            cv.notify_one();
-        }
+        void compile(File* file);
+        void compile(File* file, void (*callback)(void* data, std::string code), void* data);
 
-    public:
-        static const uint16_t max_size = 30000;
-        std::mutex m;
-        static std::condition_variable cv;
+		bool lastCompSucc() {
+			return m_lastCompSucc;
+		}
+        std::string getCompiledCode() {
+            return m_code;
+        }
+        bool isCopiling() {
+            return m_compiling;
+        }
 
     private:
-        void execute();
-
-        bool findErrors(std::string& filecontent, const std::string& filename);
+        bool findInvalidChars(std::string& filecontent, const std::string& filename);
+        bool findErrors();
         bool import(std::string& filename, std::stringstream& outputcontent);
         bool handleImports(std::string& filecontent, std::stringstream& outputcontent);
         bool save();
 
-    private:
-        std::thread m_runnerThread;
-        int exec_ind = 0;
-        bool m_lastCompSucc = false, m_running = false;
+
+	private:
+        Editor* editor;
+
+        std::filesystem::path m_mergedPath, m_compilePath, m_path;
+        bool m_lastCompSucc = false, m_compiling = false;
         std::string m_code;
-        std::filesystem::path m_mergedPath, m_compilePath;
-        Console* m_console = nullptr;
-        std::filesystem::path m_path;
-        std::vector<uint8_t> bytes;
-    };
+
+        std::thread m_compilerThread;
+	};
 }

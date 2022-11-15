@@ -40,7 +40,7 @@
     <ClCompile Include="imgui_stdlib.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="compiler.cpp">
+    <ClCompile Include="dep_compiler.cpp">
       <Filter>sources\bfide</Filter>
     </ClCompile>
     <ClCompile Include="console.cpp">
@@ -54,6 +54,12 @@
     </ClCompile>
     <ClCompile Include="path_node.cpp">
       <Filter>sources\bfide</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler.cpp">
+      <Filter>sources\bfide</Filter>
+    </ClCompile>
+    <ClCompile Include="runner.cpp">
+      <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +81,7 @@
     <ClInclude Include="imgui_stdlib.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="compiler.h">
+    <ClInclude Include="dep_compiler.h">
       <Filter>sources\bfide</Filter>
     </ClInclude>
     <ClInclude Include="console.h">
@@ -90,6 +96,10 @@
     <ClInclude Include="path_node.h">
       <Filter>sources\bfide</Filter>
     </ClInclude>
+    <ClInclude Include="compiler.h">
+      <Filter>sources\bfide</Filter>
+    </ClInclude>
+    <ClInclude Include="runner.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.txt" />

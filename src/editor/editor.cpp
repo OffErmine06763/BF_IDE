@@ -9,7 +9,10 @@ namespace bfide { // brIDE fuck
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
 	Editor::Editor() {
-        m_compiler.init(&m_console);
+		m_compiler.init(this);
+		m_runner.init(this);
+		m_console.init(this);
+
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
 			std::string field, value;
@@ -131,28 +134,32 @@ namespace bfide { // brIDE fuck
 		if (ImGui::Button("Reset layout")) {
 			resetLayout(windowSize, windowPos);
 		}
-		if (m_currFile != -1 && !m_compiler.isRunning()) {
+		if (m_currFile != -1 && !m_runner.isRunning() && !m_compiler.isCopiling()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Compile")) {
 				m_compiler.compile(&m_openedFiles[m_currFile]);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Compile & Run")) {
-				m_compiler.compileAndExecute(&m_openedFiles[m_currFile]);
+				m_compiler.compile(&m_openedFiles[m_currFile],
+					[](void* data, std::string code) {
+						Runner* runner = (Runner*)data;
+						runner->run(code);
+					}, (void*)&m_runner);
 			}
 		}
-		if (m_compiler.lastCompSucc() && !m_compiler.isRunning()) {
+		if (m_compiler.lastCompSucc() && !m_runner.isRunning()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Run")) {
-				m_compiler.executeLastCompiled();
+				m_runner.run(m_compiler.getCompiledCode());
 			}
 		}
-        if (m_compiler.isRunning()) {
-            ImGui::SameLine();
-            if (ImGui::Button("Stop")) {
-                m_compiler.stop();
-            }
-        }
+		if (m_runner.isRunning()) {
+			ImGui::SameLine();
+			if (ImGui::Button("Stop")) {
+				m_runner.stop();
+			}
+		}
 		ImGui::End();
 	}
 
