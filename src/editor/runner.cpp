@@ -19,7 +19,7 @@ namespace bfide {
 	void Runner::run(std::string code) {
 		if (m_running)
 			return;
-		bytes.resize(max_size, 0);
+		m_memory.resize(max_size, 0);
 
 		m_running = true;
 		m_runnerThread = std::thread(
@@ -32,15 +32,15 @@ namespace bfide {
 					int count = 0;
 
 					switch (c) {
-					case '+': bytes[exec_ind]++;					break;
-					case '-': bytes[exec_ind]--;					break;
-					case '.': editor->output(bytes[exec_ind]);	break;
+					case '+': m_memory[exec_ind]++;					break;
+					case '-': m_memory[exec_ind]--;					break;
+					case '.': editor->output(m_memory[exec_ind]);	break;
 					case ',':
 						editor->output("\n$ ");
 
 						editor->requestInput();
 						m_cv.wait(lk, [=] { return editor->inputReceived(); });
-						bytes[exec_ind] = editor->consumeInput();
+						m_memory[exec_ind] = editor->consumeInput();
 						break;
 
 					case '<':
@@ -69,7 +69,7 @@ namespace bfide {
 
 						break;
 					case '[':
-						if (bytes[exec_ind] != 0) {
+						if (m_memory[exec_ind] != 0) {
 							openLoopPos.push(i);
 							break;
 						}
@@ -89,7 +89,7 @@ namespace bfide {
 						break;
 
 					case ']':
-						if (bytes[exec_ind] != 0)
+						if (m_memory[exec_ind] != 0)
 							i = openLoopPos.top();
 						else
 							openLoopPos.pop();
@@ -101,7 +101,7 @@ namespace bfide {
                 if (m_running)
     				m_runnerThread.detach();
 				m_running = false;
-				bytes.clear();
+				m_memory.clear();
 			});
 	}
 }

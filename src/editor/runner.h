@@ -10,6 +10,11 @@ namespace bfide {
 	class Editor;
 
 	class Runner {
+    public:
+        static void notifyInputReceived() {
+            m_cv.notify_one();
+        }
+
 	public:
 		~Runner() {
 			if (m_running) {
@@ -35,7 +40,7 @@ namespace bfide {
 	private:
 		Editor* editor;
 		bool m_running = false;
-		std::vector<uint8_t> bytes;
+		std::vector<uint8_t> m_memory;
 		std::thread m_runnerThread;
 		std::mutex m_mutex;
 		static std::condition_variable m_cv;

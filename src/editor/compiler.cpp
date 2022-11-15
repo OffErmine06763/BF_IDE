@@ -10,7 +10,7 @@ namespace bfide {
 	void Compiler::compile(File* file, void (*callback)(void* data, std::string code), void* data) {
 		if (m_compiling)
 			return;
-
+		
 		m_lastCompSucc = false;
 		m_compiling = true;
 		m_path = file->getPath().parent_path();
@@ -19,90 +19,25 @@ namespace bfide {
 
 		m_compilerThread = std::thread([=]() {
 				editor->output("Compiling: " + file->getName() + '\n');
-
-				std::ifstream in(file->getPath());
-				if (!in.is_open()) {
-					editor->setColor(Console::RED);
-					editor->output("Error opening file\n");
-					editor->setColor(Console::WHITE);
-					return;
+				std::string fileName = file->getName(), error;
+				if (!compileFile(fileName, &error))
+					editor->compileError(error);
+				else if (m_compiling) {
+					m_code = m_ss.str();
+					m_ss.clear();
+					m_lastCompSucc = save();
+					m_compiling = false;
+					m_compilerThread.detach();
+					callback(data, m_code);
 				}
-
-				std::string line, filecontent;
-				std::stringstream ss;
-				while (!in.eof()) {
-					in >> line;
-					ss << line;
-					line.clear();
-				}
-				in.close();
-				filecontent = ss.str();
-				ss.str("");
-
-				if (findInvalidChars(filecontent, file->getName()))
-					return;
-				if (!handleImports(filecontent, ss))
-					return;
-
-				m_code = ss.str();
-				if (findErrors())
-					return;
-
-				m_lastCompSucc = save();
-				m_compiling = false;
-                m_compilerThread.detach();
-				callback(data, m_code);
 			});
 	}
 
+	bool Compiler::compileFile(std::string& filename, std::string* error) {
+		if (!m_compiling)
+			return;
 
-	bool Compiler::findInvalidChars(std::string& filecontent, const std::string& filename) {
-		for (int i = 0; i < filecontent.length(); i++) {
-			char c = filecontent[i];
-			if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>') {
-				if (c == '{') {
-					i = filecontent.find('}', i);
-					continue;
-				}
-
-				editor->setColor(Console::RED);
-				std::string line = "Invalid character '" + c;
-				line = line.append("' in file '").append(filename).append("\n");
-				editor->output(line);
-				editor->setColor(Console::WHITE);
-				return true;
-			}
-		}
-		// todo: add valid parenthesis
-		return false;
-	}
-	bool Compiler::findErrors() {
-		int count = 0;
-		for (int i = 0; i < m_code.size(); i++) {
-			char c = m_code[i];
-
-			if (c == '[')
-				count++;
-			else if (c == ']') {
-				count--;
-				if (count < 0) {
-					editor->setColor(Console::RED);
-					std::string line = "Too many closed parenthesis: merged.bf char ";
-					char buff[10];
-					itoa(i, buff, 10);
-					line.append(buff);
-					line.push_back('\n');
-					editor->output(line);
-					editor->setColor(Console::WHITE);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	bool Compiler::import(std::string& filename, std::stringstream& outputcontent) {
-		editor->output("Importing: " + filename + '\n');
+		editor->output("Compiling: " + filename + '\n');
 
 		std::filesystem::path currPath = m_path / filename;
 		std::ifstream in(currPath);
@@ -113,49 +48,113 @@ namespace bfide {
 			return false;
 		}
 
-		std::string line, filecontent;
-		std::stringstream ss;
+		std::string line;
+		std::vector<std::string> fileLines;
 		while (!in.eof()) {
 			in >> line;
-			ss << line;
+			fileLines.push_back(line);
 		}
 		in.close();
-		filecontent = ss.str();
-		ss.clear();
 
-		if (findInvalidChars(filecontent, filename))
+		if (!parseFile(fileLines, filename, error))
 			return false;
-		if (!handleImports(filecontent, outputcontent))
-			return false;
-
+		
 		return true;
 	}
 
-	bool Compiler::handleImports(std::string& filecontent, std::stringstream& outputcontent) {
-		int pos = filecontent.find('{'), end = 0;
-		while (pos != std::string::npos) {
-			outputcontent << filecontent.substr(end, pos - end);
+	bool validExtension(std::string& ext) {
+		if (ext == ".bf")
+			return true;
+		return false;
+	}
+	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string* error) {
+		if (!m_compiling)
+			return;
 
-			end = filecontent.find('}', pos + 1);
-			std::string importName = filecontent.substr(pos + 1, end - pos - 1);
-			if (!import(importName, outputcontent))
-				return false;
+		for (int l = 0; l < fileLines.size(); l++) {
+			std::string& line = fileLines[l];
+			for (int i = 0; i < line.length(); i++) {
+				char c = line[i];
+				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}') {
+					*error = std::format("Invalid character '%c' in file '%s' (%d:%d)\n", c, filename, l, i);
+					return false;
+				}
 
-			pos = filecontent.find('{', pos + 1);
-			end++;
+				if (c == '{') {
+					m_ss << line.substr(0, i);
+					bool foundClose = false, foundImport = false;
+					int prev_l = l, prev_i = i;
+					for (true; l < fileLines.size(); l++) {
+						std::string& importLine = fileLines[l];
+						for (true; i < importLine.length(); i++) {
+							char importChar = importLine[l];
+							if (importChar == '{') {
+								*error = std::format("Too many '{' in file '%s' (%d:%d)\n", filename, l, i);
+								return false;
+							}
+							else if (importChar == '}') {
+								if (!foundImport) {
+									*error = std::format("Missing filename in import in file '%s' (%d:%d)\n", filename, prev_l, prev_i);
+									return false;
+								}
+								foundClose = true;
+								break;
+							}
+							else if (importChar != ' ') {
+								foundImport = true;
+								int ind = importLine.find_last_of('.', i);
+								if (ind == std::string::npos) {
+									*error = std::format("Import filename requires a valid extension ('.bf') in file '%s' (%d:%d)\n", filename, l, i);
+									return false;
+								}
+								int end = importLine.find_last_of("} ", ind + 1);
+								if (end == std::string::npos) // file extension ends at the end of the line, valid
+									end = importLine.length();
+
+								std::string extension = importLine.substr(ind, end - ind),
+									importName = importLine.substr(i, ind - i);
+								if (!validExtension(extension)) {
+									*error = std::format("Import filename requires a valid extension ('.bf') in file '%s' (%d:%d)\n", filename, l, i);
+									return false;
+								}
+
+								if (!compileFile(importName.append(extension), error)) {
+									return false;
+								}
+							}
+						}
+						if (foundClose) {
+							line = importLine.substr(i + 1);
+							break;
+						}
+						i = 0;
+					}
+					if (!foundClose) {
+						*error = std::format("Import never closes in file '%s' (%d:%d)", filename, prev_l, prev_i);
+						return false;
+					}
+				}
+				else if (c == '}') { // when finds '{' automatically goes to the corresponding '}' if present
+					*error = std::format("Too many '}' in file '%s' (%d:%d)\n", filename, l, i);
+					return false;
+				}
+
+			}
+			m_ss << line;
 		}
-		outputcontent << filecontent.substr(end, filecontent.length());
 
 		return true;
 	}
 
 	bool Compiler::save() {
+		if (!m_compiling)
+			return false;
+
 		std::filesystem::create_directories(m_compilePath);
 		std::ofstream out(m_mergedPath);
 		if (!out.is_open()) {
-			editor->setColor(Console::RED);
-			editor->output("Error opening output file: " + m_mergedPath.string() + "\n");
-			editor->setColor(Console::WHITE);
+			editor->compileError(std::format("Error opening output file: %s\n", m_mergedPath.string()));
+			return false;
 		}
 		out << m_code;
 		out.close();

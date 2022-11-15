@@ -18,7 +18,7 @@ namespace bfide {
 	class Editor {
     public:
         static void notifyInputReceived() {
-
+            Runner::notifyInputReceived();
         }
 
 	public:
@@ -39,15 +39,20 @@ namespace bfide {
         void output(char line) {
             m_console.write(line);
         }
+        void compileError(std::string line) {
+            m_console.setColor(Console::RED);
+            m_console.write(line);
+            m_console.setColor(Console::WHITE);
+        }
 
         void requestInput() {
-
+            m_console.requestInput();
         }
         uint8_t consumeInput() {
-            return 0;
+            return m_console.consumeInput();
         }
         bool inputReceived() {
-            return true;
+            return m_console.inputReceived();
         }
         void setColor(const ImVec4& color) {
             m_console.setColor(color);

@@ -1,48 +1,49 @@
 #pragma once
 #include "file.h"
 #include <thread>
+#include <vector>
 
 namespace bfide {
 	class Editor;
 
+	struct ParseResult_t {
+		bool succeeded;
+		std::vector<std::string> imports;
+		std::string error;
+	};
+
 	class Compiler {
 	public:
-        ~Compiler() {
-            if (m_compiling)
-                m_compilerThread.detach();
-        }
-        void init(Editor* editor) {
-            this->editor = editor;
-        }
-
-        void compile(File* file);
-        void compile(File* file, void (*callback)(void* data, std::string code), void* data);
-
-		bool lastCompSucc() {
-			return m_lastCompSucc;
+		~Compiler() {
+			if (m_compiling) {
+				m_compiling = false;
+				m_compilerThread.join();
+			}
 		}
-        std::string getCompiledCode() {
-            return m_code;
-        }
-        bool isCopiling() {
-            return m_compiling;
-        }
+		void init(Editor* editor) {
+			this->editor = editor;
+		}
 
-    private:
-        bool findInvalidChars(std::string& filecontent, const std::string& filename);
-        bool findErrors();
-        bool import(std::string& filename, std::stringstream& outputcontent);
-        bool handleImports(std::string& filecontent, std::stringstream& outputcontent);
-        bool save();
+		void compile(File* file);
+		void compile(File* file, void (*callback)(void* data, std::string code), void* data);
 
+		bool lastCompSucc() { return m_lastCompSucc; }
+		std::string getCompiledCode() { return m_code; }
+		bool isCopiling() { return m_compiling; }
 
 	private:
-        Editor* editor;
+		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string* error);
+		bool compileFile(std::string& filename, std::string* error);
+		bool save();
 
-        std::filesystem::path m_mergedPath, m_compilePath, m_path;
-        bool m_lastCompSucc = false, m_compiling = false;
-        std::string m_code;
+	private:
+		Editor* editor;
 
-        std::thread m_compilerThread;
+		std::filesystem::path m_mergedPath, m_compilePath, m_path;
+		bool m_lastCompSucc = false, m_compiling = false;
+		std::string m_code;
+		std::stringstream m_ss;
+
+		std::thread m_compilerThread;
 	};
 }
