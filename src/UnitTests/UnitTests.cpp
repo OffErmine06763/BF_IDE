@@ -88,12 +88,12 @@ namespace UnitTests {
 				for (std::string& str : testCase.first) {
 					Logger::WriteMessage((str + '\n').c_str());
 				}
-				bool res = compiler.parseFile(testCase.first, name, error);
+				bool res = compiler.parseFile(testCase.first, name, error, false);
 				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n", testCase.second, res).c_str());
 				Assert::AreEqual(testCase.second, res, std::wstring(error.begin(), error.end()).c_str());
 			}
 			namesFile.close();
 			parFile.close();
-		}
+		} // CAUSE: should not use rfind and similar since there could be more than one import per line
 	};
 }

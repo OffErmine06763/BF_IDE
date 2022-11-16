@@ -66,7 +66,7 @@ namespace bfide {
 			return true;
 		return false;
 	}
-	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error) {
+	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive /* = true */) {
 		if (!m_compiling)
 			return false;
 
@@ -118,7 +118,7 @@ namespace bfide {
 									return false;
 								}
 
-								if (!compileFile(importName.append(extension), error)) {
+								if (recursive && !compileFile(importName.append(extension), error)) {
 									return false;
 								}
 								i = end - 1;

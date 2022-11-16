@@ -17,7 +17,8 @@ namespace bfide {
 		~Compiler() {
 			if (m_compiling) {
 				m_compiling = false;
-				m_compilerThread.join();
+				if (m_compilerThread.joinable())
+					m_compilerThread.join();
 			}
 		}
 		void init(Editor* editor) {
@@ -32,7 +33,7 @@ namespace bfide {
 		bool isCopiling() { return m_compiling; }
 
 	private:
-		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error);
+		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive = true);
 		bool compileFile(std::string& filename, std::string& error);
 		bool save();
 
