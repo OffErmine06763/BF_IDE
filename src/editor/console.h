@@ -37,7 +37,7 @@ namespace bfide {
 	private:
 
 	private:
-        Editor* editor;
+        Editor* editor = nullptr;
 		std::string m_text = "";
         bool m_inputRequested = false, m_inputReceived = false;
         char m_input;

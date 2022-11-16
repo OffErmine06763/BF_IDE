@@ -1,16 +1,9 @@
+8
 {tests}
-{ tests}
-{tests }
-{ tests }
-{
-tests}
-{tests
-}
-{
-tests
-}
-{
-
-tests
-
-}
+{_tests}
+{tests_}
+{_tests_}
+{\ntests}
+{tests\n}
+{\ntests\n}
+{\n\ntests\n\n}

@@ -20,7 +20,7 @@ namespace bfide {
 		m_compilerThread = std::thread([=]() {
 				editor->output("Compilation started\n");
 				std::string fileName = file->getName(), error;
-				if (!compileFile(fileName, &error))
+				if (!compileFile(fileName, error))
 					editor->compileError(error);
 				else if (m_compiling) {
 					m_code = m_ss.str();
@@ -33,7 +33,7 @@ namespace bfide {
 			});
 	}
 
-	bool Compiler::compileFile(std::string& filename, std::string* error) {
+	bool Compiler::compileFile(std::string& filename, std::string& error) {
 		if (!m_compiling)
 			return false;
 
@@ -66,7 +66,7 @@ namespace bfide {
 			return true;
 		return false;
 	}
-	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string* error) {
+	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error) {
 		if (!m_compiling)
 			return false;
 
@@ -75,7 +75,7 @@ namespace bfide {
 			for (int i = 0; i < line.length(); i++) {
 				char c = line[i];
 				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}') {
-					*error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
+					error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
 					return false;
 				}
 
@@ -89,12 +89,12 @@ namespace bfide {
 						for (true; i < importLine.length(); i++) {
 							char importChar = importLine[i];
 							if (importChar == '{') {
-								*error = std::format("Too many '{{' in file '{}' ({}:{})\n", filename, l, i);
+								error = std::format("Too many '{{' in file '{}' ({}:{})\n", filename, l, i);
 								return false;
 							}
 							else if (importChar == '}') {
 								if (!foundImport) {
-									*error = std::format("Missing filename in import in file '{}' ({}:{})\n", filename, prev_l, prev_i);
+									error = std::format("Missing filename in import in file '{}' ({}:{})\n", filename, prev_l, prev_i);
 									return false;
 								}
 								foundClose = true;
@@ -104,7 +104,7 @@ namespace bfide {
 								foundImport = true;
 								int ind = importLine.rfind('.', importLine.length() - 1 - i);
 								if (ind == std::string::npos) {
-									*error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
+									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
 									return false;
 								}
 								int end = importLine.find_last_of("} ", importLine.length());
@@ -114,7 +114,7 @@ namespace bfide {
 								std::string extension = importLine.substr(ind, end - ind),
 									importName = importLine.substr(i, ind - i);
 								if (!validExtension(extension)) {
-									*error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
+									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
 									return false;
 								}
 
@@ -131,12 +131,12 @@ namespace bfide {
 						i = 0;
 					}
 					if (!foundClose) {
-						*error = std::format("Import never closes in file '{}' ({}:{})", filename, prev_l, prev_i);
+						error = std::format("Import never closes in file '{}' ({}:{})", filename, prev_l, prev_i);
 						return false;
 					}
 				}
 				else if (c == '}') { // when finds '{' automatically goes to the corresponding '}' if present
-					*error = std::format("Too many '}}' in file '{}' ({}:{})\n", filename, l, i);
+					error = std::format("Too many '}}' in file '{}' ({}:{})\n", filename, l, i);
 					return false;
 				}
 

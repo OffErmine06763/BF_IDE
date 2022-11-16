@@ -40,9 +40,6 @@
     <ClCompile Include="imgui_stdlib.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="dep_compiler.cpp">
-      <Filter>sources\bfide</Filter>
-    </ClCompile>
     <ClCompile Include="console.cpp">
       <Filter>sources\bfide</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
     <ClInclude Include="imgui_stdlib.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="dep_compiler.h">
-      <Filter>sources\bfide</Filter>
-    </ClInclude>
     <ClInclude Include="console.h">
       <Filter>sources\bfide</Filter>
     </ClInclude>
@@ -100,6 +94,9 @@
       <Filter>sources\bfide</Filter>
     </ClInclude>
     <ClInclude Include="runner.h" />
+    <ClInclude Include="editor_pch.h">
+      <Filter>sources\bfide</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.txt" />

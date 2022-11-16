@@ -1,23 +1,19 @@
 #pragma once
 #include "file.h"
+
 #include <thread>
 #include <vector>
 
-namespace UnitTests {}
-using namespace UnitTests;
+namespace UnitTests {
+	class UnitTestsClass;
+}
 
 namespace bfide {
 	class Editor;
 
-	struct ParseResult_t {
-		bool succeeded;
-		std::vector<std::string> imports;
-		std::string error;
-	};
-
 	class Compiler {
+		friend UnitTests::UnitTestsClass;
 	public:
-		friend class UnitTests;
 		~Compiler() {
 			if (m_compiling) {
 				m_compiling = false;
@@ -36,12 +32,12 @@ namespace bfide {
 		bool isCopiling() { return m_compiling; }
 
 	private:
-		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string* error);
-		bool compileFile(std::string& filename, std::string* error);
+		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error);
+		bool compileFile(std::string& filename, std::string& error);
 		bool save();
 
 	private:
-		Editor* editor;
+		Editor* editor = nullptr;
 
 		std::filesystem::path m_mergedPath, m_compilePath, m_path;
 		bool m_lastCompSucc = false, m_compiling = false;
