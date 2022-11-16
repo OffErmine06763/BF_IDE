@@ -3,6 +3,9 @@
 #include <thread>
 #include <vector>
 
+namespace UnitTests {}
+using namespace UnitTests;
+
 namespace bfide {
 	class Editor;
 
@@ -14,6 +17,7 @@ namespace bfide {
 
 	class Compiler {
 	public:
+		friend class UnitTests;
 		~Compiler() {
 			if (m_compiling) {
 				m_compiling = false;

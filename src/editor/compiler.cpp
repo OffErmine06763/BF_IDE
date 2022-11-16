@@ -18,7 +18,7 @@ namespace bfide {
 		m_mergedPath = m_compilePath / "merged.bf";
 
 		m_compilerThread = std::thread([=]() {
-				editor->output("Compiling: " + file->getName() + '\n');
+				editor->output("Compilation started\n");
 				std::string fileName = file->getName(), error;
 				if (!compileFile(fileName, &error))
 					editor->compileError(error);
@@ -35,16 +35,14 @@ namespace bfide {
 
 	bool Compiler::compileFile(std::string& filename, std::string* error) {
 		if (!m_compiling)
-			return;
+			return false;
 
 		editor->output("Compiling: " + filename + '\n');
 
 		std::filesystem::path currPath = m_path / filename;
 		std::ifstream in(currPath);
 		if (!in.is_open()) {
-			editor->setColor(Console::RED);
-			editor->output("Error opening file: " + currPath.string() + "\n");
-			editor->setColor(Console::WHITE);
+			editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
 			return false;
 		}
 
@@ -58,7 +56,8 @@ namespace bfide {
 
 		if (!parseFile(fileLines, filename, error))
 			return false;
-		
+
+		// cache here
 		return true;
 	}
 
@@ -69,14 +68,14 @@ namespace bfide {
 	}
 	bool Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string* error) {
 		if (!m_compiling)
-			return;
+			return false;
 
 		for (int l = 0; l < fileLines.size(); l++) {
 			std::string& line = fileLines[l];
 			for (int i = 0; i < line.length(); i++) {
 				char c = line[i];
 				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}') {
-					*error = std::format("Invalid character '%c' in file '%s' (%d:%d)\n", c, filename, l, i);
+					*error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
 					return false;
 				}
 
@@ -84,17 +83,18 @@ namespace bfide {
 					m_ss << line.substr(0, i);
 					bool foundClose = false, foundImport = false;
 					int prev_l = l, prev_i = i;
+					i++;
 					for (true; l < fileLines.size(); l++) {
 						std::string& importLine = fileLines[l];
 						for (true; i < importLine.length(); i++) {
-							char importChar = importLine[l];
+							char importChar = importLine[i];
 							if (importChar == '{') {
-								*error = std::format("Too many '{' in file '%s' (%d:%d)\n", filename, l, i);
+								*error = std::format("Too many '{{' in file '{}' ({}:{})\n", filename, l, i);
 								return false;
 							}
 							else if (importChar == '}') {
 								if (!foundImport) {
-									*error = std::format("Missing filename in import in file '%s' (%d:%d)\n", filename, prev_l, prev_i);
+									*error = std::format("Missing filename in import in file '{}' ({}:{})\n", filename, prev_l, prev_i);
 									return false;
 								}
 								foundClose = true;
@@ -102,25 +102,26 @@ namespace bfide {
 							}
 							else if (importChar != ' ') {
 								foundImport = true;
-								int ind = importLine.find_last_of('.', i);
+								int ind = importLine.rfind('.', importLine.length() - 1 - i);
 								if (ind == std::string::npos) {
-									*error = std::format("Import filename requires a valid extension ('.bf') in file '%s' (%d:%d)\n", filename, l, i);
+									*error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
 									return false;
 								}
-								int end = importLine.find_last_of("} ", ind + 1);
+								int end = importLine.find_last_of("} ", importLine.length());
 								if (end == std::string::npos) // file extension ends at the end of the line, valid
 									end = importLine.length();
 
 								std::string extension = importLine.substr(ind, end - ind),
 									importName = importLine.substr(i, ind - i);
 								if (!validExtension(extension)) {
-									*error = std::format("Import filename requires a valid extension ('.bf') in file '%s' (%d:%d)\n", filename, l, i);
+									*error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
 									return false;
 								}
 
 								if (!compileFile(importName.append(extension), error)) {
 									return false;
 								}
+								i = end - 1;
 							}
 						}
 						if (foundClose) {
@@ -130,12 +131,12 @@ namespace bfide {
 						i = 0;
 					}
 					if (!foundClose) {
-						*error = std::format("Import never closes in file '%s' (%d:%d)", filename, prev_l, prev_i);
+						*error = std::format("Import never closes in file '{}' ({}:{})", filename, prev_l, prev_i);
 						return false;
 					}
 				}
 				else if (c == '}') { // when finds '{' automatically goes to the corresponding '}' if present
-					*error = std::format("Too many '}' in file '%s' (%d:%d)\n", filename, l, i);
+					*error = std::format("Too many '}}' in file '{}' ({}:{})\n", filename, l, i);
 					return false;
 				}
 
@@ -164,3 +165,4 @@ namespace bfide {
 	}
 }
 
+// todo: compiled of every single included file to parse it only once, << the saved file content into the m_ss

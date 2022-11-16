@@ -110,4 +110,7 @@
       <Filter>sources\bfide</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="tests.bf" />
+  </ItemGroup>
 </Project>

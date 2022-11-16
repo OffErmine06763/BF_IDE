@@ -106,7 +106,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..;..\..\backends;%VULKAN_SDK%\include;..\libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\UnitTests;..\..;..\..\backends;%VULKAN_SDK%\include;..\libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ImTextureID=ImU64;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -198,6 +198,9 @@
     <None Include="..\..\misc\debuggers\imgui.natvis" />
     <None Include="..\README.txt" />
     <None Include="data.bfidedata" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="tests.bf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
