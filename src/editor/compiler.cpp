@@ -102,6 +102,30 @@ namespace bfide {
 							}
 							else if (importChar != ' ') {
 								foundImport = true;
+								int end = i, dot = std::string::npos;
+								for (true; end < importLine.length(); end++) {
+									if (importLine[end] == ' ' || importLine[end] == '}')
+										break;
+									else if (importLine[end] == '.')
+										dot = end;
+								}
+
+								if (dot == std::string::npos) {
+									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
+									return false;
+								}
+								std::string extension = importLine.substr(dot, end - dot),
+									importName = importLine.substr(i, dot - i);
+								if (!validExtension(extension)) {
+									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
+									return false;
+								}
+
+								if (recursive && !compileFile(importName.append(extension), error)) {
+									return false;
+								}
+								i = end - 1;
+								/*
 								int ind = importLine.rfind('.', importLine.length() - 1 - i);
 								if (ind == std::string::npos) {
 									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
@@ -122,6 +146,7 @@ namespace bfide {
 									return false;
 								}
 								i = end - 1;
+								*/
 							}
 						}
 						if (foundClose) {

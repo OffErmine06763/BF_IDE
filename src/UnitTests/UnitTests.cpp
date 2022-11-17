@@ -67,8 +67,10 @@ namespace UnitTests {
 				std::string currPar = parenthesis[p];
 				for (int n = 0; n < names.size(); n++) {
 					std::string& currName = names[n];
-					std::string parCpy = currPar;
-					std::string currTestCode = parCpy.replace(parCpy.find("tests"), 5, currName);
+					std::string currTestCode = currPar;
+					int ind = 0;
+					while ((ind = currTestCode.find("tests", ind)) != std::string::npos) 
+						currTestCode = currTestCode.replace(ind, 5, currName);
 
 					std::vector<std::string> currTest;
 					int pos = currTestCode.length(), prevPos = 0;

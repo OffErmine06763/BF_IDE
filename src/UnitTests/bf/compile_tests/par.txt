@@ -1,4 +1,4 @@
-8
+10
 {tests}
 {_tests}
 {tests_}
@@ -7,3 +7,5 @@
 {tests\n}
 {\ntests\n}
 {\n\ntests\n\n}
+{tests}{tests}
+{tests}\n{tests}
