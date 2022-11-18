@@ -258,6 +258,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="bf\compile_tests\names.txt" />
+    <None Include="bf\merge_tests\test.bf" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="bf\compile_tests\par.txt" />

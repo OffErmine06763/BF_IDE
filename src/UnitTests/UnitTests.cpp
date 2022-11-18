@@ -23,6 +23,22 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace UnitTests {
 	TEST_CLASS(UnitTestsClass) {
 	public:
+		TEST_METHOD(TestMerge) {
+			std::string expected_code = "";
+
+			bfide::Compiler compiler;
+			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/test.bf"));
+
+			compiler.compile(&file,
+				[](void* data, std::string code) {
+					Logger::WriteMessage(code.c_str());
+					std::string correct = *(std::string*)data;
+					// Assert::AreEqual(correct, code);
+				}, &expected_code);
+			Logger::WriteMessage("message");
+			Assert::IsTrue(true);
+		}
+
 		TEST_METHOD(TestCompilation) {
 			bfide::Compiler compiler;
 			compiler.m_compiling = true;
@@ -33,7 +49,7 @@ namespace UnitTests {
 			Assert::AreEqual(true, namesFile.is_open() && parFile.is_open(), L"Faild to open files");
 
 			std::vector<std::string> parenthesis, names;
-			std::vector<bool> correctResults;
+			std::vector<bfide::CompileResult> correctResults;
 			int parCount, namesCount;
 			parFile >> parCount;
 			namesFile >> namesCount;
@@ -57,10 +73,10 @@ namespace UnitTests {
 				names.push_back(line);
 				bool res;
 				namesFile >> res;
-				correctResults.push_back(res);
+				correctResults.push_back(res ? bfide::CompileResult::SUCCESS : bfide::CompileResult::ERROR);
 			}
 
-			std::vector<std::pair<std::vector<std::string>, bool>> tests;
+			std::vector<std::pair<std::vector<std::string>, bfide::CompileResult>> tests;
 			tests.reserve(namesCount * parCount);
 
 			for (int p = 0; p < parenthesis.size(); p++) {
@@ -86,16 +102,18 @@ namespace UnitTests {
 			}
 
 			std::string name = "Test", error;
-			for (std::pair<std::vector<std::string>, bool>& testCase : tests) {
+			for (std::pair<std::vector<std::string>, bfide::CompileResult>& testCase : tests) {
 				for (std::string& str : testCase.first) {
 					Logger::WriteMessage((str + '\n').c_str());
 				}
-				bool res = compiler.parseFile(testCase.first, name, error, false);
-				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n", testCase.second, res).c_str());
-				Assert::AreEqual(testCase.second, res, std::wstring(error.begin(), error.end()).c_str());
+				bfide::CompileResult res = compiler.parseFile(testCase.first, name, error, false);
+				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
+					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
+					(res == bfide::CompileResult::SUCCESS ? 1 : 0)).c_str());
+				Assert::AreEqual((testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0), (res == bfide::CompileResult::SUCCESS ? 1 : 0), std::wstring(error.begin(), error.end()).c_str());
 			}
 			namesFile.close();
 			parFile.close();
-		} // CAUSE: should not use rfind and similar since there could be more than one import per line
+		}
 	};
 }

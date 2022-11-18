@@ -9,6 +9,10 @@ namespace UnitTests {
 }
 
 namespace bfide {
+	enum CompileResult {
+		SUCCESS = 0, ERROR, ABORT
+	};
+
 	class Editor;
 
 	class Compiler {
@@ -26,15 +30,15 @@ namespace bfide {
 		}
 
 		void compile(File* file);
-		void compile(File* file, void (*callback)(void* data, std::string code), void* data);
+		void compile(File* file, void (*callback)(void* data, std::string code), void* data = nullptr);
 
 		bool lastCompSucc() { return m_lastCompSucc; }
 		std::string getCompiledCode() { return m_code; }
 		bool isCopiling() { return m_compiling; }
 
 	private:
-		bool parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive = true);
-		bool compileFile(std::string& filename, std::string& error);
+		CompileResult parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive = true);
+		CompileResult compileFile(std::string& filename, std::string& error);
 		bool save();
 
 	private:
