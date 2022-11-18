@@ -9,7 +9,7 @@ namespace bfide {
 	class Console {
 	public:
         void init(Editor* editor) {
-            this->editor = editor;
+            this->m_editor = editor;
         }
 
 		inline std::string& getText() { return m_text; }
@@ -37,7 +37,7 @@ namespace bfide {
 	private:
 
 	private:
-        Editor* editor = nullptr;
+        Editor* m_editor = nullptr;
 		std::string m_text = "";
         bool m_inputRequested = false, m_inputReceived = false;
         char m_input;

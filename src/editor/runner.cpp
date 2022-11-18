@@ -12,7 +12,7 @@ namespace bfide {
 			m_running = false;
 			m_cv.notify_one();
             m_runnerThread.join();
-			editor->output("\nSopping execution\n");
+			m_editor->output("\nSopping execution\n");
 		}
 	}
 
@@ -34,22 +34,20 @@ namespace bfide {
 					switch (c) {
 					case '+': m_memory[exec_ind]++;					break;
 					case '-': m_memory[exec_ind]--;					break;
-					case '.': editor->output(m_memory[exec_ind]);	break;
+					case '.': m_editor->output(m_memory[exec_ind]);	break;
 					case ',':
-						editor->output("\n$ ");
+						m_editor->output("\n$ ");
 
-						editor->requestInput();
-						m_cv.wait(lk, [=] { return editor->inputReceived(); });
-						m_memory[exec_ind] = editor->consumeInput();
+						m_editor->requestInput();
+						m_cv.wait(lk, [=] { return m_editor->inputReceived(); });
+						m_memory[exec_ind] = m_editor->consumeInput();
 						break;
 
 					case '<':
 						if (exec_ind == 0) {
 							std::string s(i, ' ');
-
-							editor->setColor(Console::RED);
-							editor->output("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + code + '\n' + s + "^ INDEX < 0\n");
-							editor->setColor(Console::WHITE);
+							m_editor->runtimeError(std::format("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n{}\n{}^ INDEX < 0\n", code, s));
+							
 							return;
 						}
 
@@ -59,11 +57,7 @@ namespace bfide {
 						exec_ind++;
 						if (exec_ind == max_size) {
 							std::string s(i, ' ');
-
-							editor->setColor(Console::RED);
-							std::string max_size_str = "" + max_size;
-							editor->output("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n" + code + '\n' + s + "^ INDEX > " + max_size_str + '\n');
-							editor->setColor(Console::WHITE);
+							m_editor->runtimeError(std::format("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n{}\n{}^ INDEX > {}\n", code, s, max_size));
 							return;
 						}
 
@@ -96,7 +90,7 @@ namespace bfide {
 						break;
 					}
 				}
-				editor->output("\n");
+				m_editor->output("\n");
 
                 if (m_running)
     				m_runnerThread.detach();

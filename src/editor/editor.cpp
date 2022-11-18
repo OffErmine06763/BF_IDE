@@ -35,7 +35,6 @@ namespace bfide { // brIDE fuck
 			}
 		}
 	}
-
 	Editor::~Editor() {
 		std::ofstream out("data.bfidedata");
 		for (const auto& entry : m_data) {
@@ -142,7 +141,7 @@ namespace bfide { // brIDE fuck
 			ImGui::SameLine();
 			if (ImGui::Button("Compile & Run")) {
 				m_compiler.compile(&m_openedFiles[m_currFile],
-					[](void* data, std::string code) {
+					[](void* data, std::string& code) {
 						Runner* runner = (Runner*)data;
 						runner->run(code);
 					}, (void*)&m_runner);
@@ -271,7 +270,7 @@ namespace bfide { // brIDE fuck
 		}
 
 		if (ImGui::BeginTabBar("##files_tab", ImGuiTabBarFlags_Reorderable)) {
-			for (int ind = 0; ind < m_openedFiles.size(); ind++) {
+			for (size_t ind = 0; ind < m_openedFiles.size(); ind++) {
 				File& file = m_openedFiles[ind];
 				if (!file.isOpen())
 					continue;
@@ -322,7 +321,7 @@ namespace bfide { // brIDE fuck
 		if (m_closeQueueSave.size() > 0)
 			renderFileSavePopup();
 
-		for (int ind : m_closeQueue) {
+		for (uint64_t ind : m_closeQueue) {
 			m_openedFiles[ind].close();
 			m_openedFiles.erase(m_openedFiles.begin() + ind);
 			if (ind == m_currFile) {
@@ -343,14 +342,14 @@ namespace bfide { // brIDE fuck
 			ImGui::Text("Save change to the following items?");
 			float item_height = ImGui::GetTextLineHeightWithSpacing();
 			if (ImGui::BeginChildFrame(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height))) {
-				for (int ind : m_closeQueueSave)
+				for (uint64_t ind : m_closeQueueSave)
 					ImGui::Text(m_openedFiles[ind].getName().c_str());
 				ImGui::EndChildFrame();
 			}
 
 			ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
 			if (ImGui::Button("Yes", button_size)) {
-				for (int ind : m_closeQueueSave) {
+				for (uint64_t ind : m_closeQueueSave) {
 					m_openedFiles[ind].save();
 					m_openedFiles[ind].close();
 					m_openedFiles.erase(m_openedFiles.begin() + ind);
@@ -362,7 +361,7 @@ namespace bfide { // brIDE fuck
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("No", button_size)) {
-				for (int ind : m_closeQueueSave) {
+				for (uint64_t ind : m_closeQueueSave) {
 					m_openedFiles[ind].close();
 					m_openedFiles.erase(m_openedFiles.begin() + ind);
 					if (ind == m_currFile)
@@ -399,5 +398,46 @@ namespace bfide { // brIDE fuck
 		m_console.render(consoleSize);
 
 		ImGui::End();
+	}
+
+
+	void Editor::output(const std::string& line) {
+		m_console.write(line);
+	}
+	void Editor::output(const char* const line) {
+		m_console.write(line);
+	}
+	void Editor::output(char line) {
+		m_console.write(line);
+	}
+	void Editor::compileError(const std::string& line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
+	}
+	void Editor::compileError(const char* const line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
+	}
+	void Editor::compileError(char line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
+	}
+	void Editor::runtimeError(const std::string& line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
+	}
+	void Editor::runtimeError(const char* const line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
+	}
+	void Editor::runtimeError(char line) {
+		m_console.setColor(Console::RED);
+		m_console.write(line);
+		m_console.setColor(Console::WHITE);
 	}
 }
