@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 
 #include "compiler.h"
+#include "console.h"
 
 #include <vector>
 #include <string>
@@ -24,7 +25,7 @@ namespace UnitTests {
 	TEST_CLASS(UnitTestsClass) {
 	public:
 		TEST_METHOD(TestMerge) {
-			std::string expected_code = "+.[-]><++--,";
+			std::string expected_code = "+.[-]><++--,,,,...";
 
 			bfide::Compiler compiler;
 			compiler.m_compiling = true;
@@ -114,6 +115,15 @@ namespace UnitTests {
 			}
 			namesFile.close();
 			parFile.close();
+		}
+
+		TEST_METHOD(TestConsoleOut) {
+			bfide::Console console;
+			std::string str = "ciao\nmondo", str2 = "\ntest";
+			console.write(str);
+			Assert::AreEqual(str, console.m_text);
+			console.write(str2);
+			Assert::AreEqual(str + str2, console.m_text);
 		}
 	};
 }

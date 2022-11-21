@@ -12,7 +12,7 @@ namespace bfide {
 			m_running = false;
 			m_cv.notify_one();
             m_runnerThread.join();
-			m_editor->output("\nSopping execution\n");
+			m_editor->output("\nStopping execution\n");
 		}
 	}
 
@@ -36,8 +36,6 @@ namespace bfide {
 					case '-': m_memory[exec_ind]--;					break;
 					case '.': m_editor->output(m_memory[exec_ind]);	break;
 					case ',':
-						m_editor->output("\n$ ");
-
 						m_editor->requestInput();
 						m_cv.wait(lk, [=] { return m_editor->inputReceived(); });
 						m_memory[exec_ind] = m_editor->consumeInput();
@@ -90,7 +88,7 @@ namespace bfide {
 						break;
 					}
 				}
-				m_editor->output("\n");
+				m_editor->output("\n--------\n");
 
                 if (m_running)
     				m_runnerThread.detach();

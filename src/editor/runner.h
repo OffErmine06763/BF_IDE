@@ -10,15 +10,10 @@ namespace bfide {
 	class Editor;
 
 	class Runner {
-    public:
-        static void notifyInputReceived() {
-            m_cv.notify_one();
-        }
-
 	public:
 		~Runner() {
 			if (m_running) {
-                stop();
+				stop();
 			}
 		}
 		void init(Editor* editor) {
@@ -32,11 +27,14 @@ namespace bfide {
 			return m_running;
 		}
 
+		void notifyInputReceived() {
+			m_cv.notify_one();
+		}
+
 	public:
 		static const uint16_t max_size = 30000;
 
-	private:
-		
+
 	private:
 		Editor* m_editor;
 		bool m_running = false;

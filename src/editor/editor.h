@@ -16,11 +16,6 @@
 
 namespace bfide {
 	class Editor {
-    public:
-        static void notifyInputReceived() {
-            Runner::notifyInputReceived();
-        }
-
 	public:
 		Editor();
         ~Editor();
@@ -45,14 +40,10 @@ namespace bfide {
 			m_console.setColor(Console::WHITE);
 		}
 		void compileError(const char* const line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+			compileError(std::string(line));
 		}
-		void compileError(char line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+		void compileError(char c) {
+			compileError(std::string(1, c));
 		}
 		void runtimeError(const std::string& line) {
 			m_console.setColor(Console::RED);
@@ -60,14 +51,10 @@ namespace bfide {
 			m_console.setColor(Console::WHITE);
 		}
 		void runtimeError(const char* const line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+			runtimeError(std::string(line));
 		}
-		void runtimeError(char line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+		void runtimeError(char c) {
+			runtimeError(std::string(1, c));
 		}
 
 
@@ -83,8 +70,9 @@ namespace bfide {
         void setColor(const ImVec4& color) {
             m_console.setColor(color);
         }
-
-	public:
+		void notifyInputReceived() {
+			m_runner.notifyInputReceived();
+		}
 
 
 	private:
@@ -126,3 +114,4 @@ namespace bfide {
 
 // +[----->+++<]>+.+.[--->+<]>---.+[----->+<]>.++.--.
 // TODO: side by side memory viewer
+// TODO: befunge
