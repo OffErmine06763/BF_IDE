@@ -30,20 +30,46 @@ namespace bfide {
 			return clear_color;
 		}
 
-        void output(const std::string& line) {
-            m_console.write(line);
-        }
-        void output(const char* const line) {
-            m_console.write(line);
-        }
-        void output(char line) {
-            m_console.write(line);
-        }
-        void compileError(std::string line) {
-            m_console.setColor(Console::RED);
-            m_console.write(line);
-            m_console.setColor(Console::WHITE);
-        }
+		void output(const std::string& line) {
+			m_console.write(line);
+		}
+		void output(const char* const line) {
+			m_console.write(line);
+		}
+		void output(char line) {
+			m_console.write(line);
+		}
+		void compileError(const std::string& line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+		void compileError(const char* const line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+		void compileError(char line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+		void runtimeError(const std::string& line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+		void runtimeError(const char* const line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+		void runtimeError(char line) {
+			m_console.setColor(Console::RED);
+			m_console.write(line);
+			m_console.setColor(Console::WHITE);
+		}
+
 
         void requestInput() {
             m_console.requestInput();
@@ -76,9 +102,9 @@ namespace bfide {
 		Console m_console;
         Runner m_runner;
 		std::vector<File> m_openedFiles;
-        int m_currFile = -1, m_moveToFile = -1;
-		std::vector<int> m_closeQueue, m_closeQueueSave;
-		int m_frame = 0;
+        int64_t m_currFile = -1, m_moveToFile = -1;
+		std::vector<uint64_t> m_closeQueue, m_closeQueueSave;
+		int64_t m_frame = 0;
 		PathNode m_baseFolder;
 		std::unordered_map<std::string, std::string> m_data;
 

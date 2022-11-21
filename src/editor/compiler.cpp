@@ -5,9 +5,9 @@
 
 namespace bfide {
 	void Compiler::compile(File* file) {
-		compile(file, [](void* data, std::string code) {}, nullptr);
+		compile(file, [](void* data, std::string& code) {}, nullptr);
 	}
-	void Compiler::compile(File* file, void (*callback)(void* data, std::string code), void* data) {
+	void Compiler::compile(File* file, void (*callback)(void* data, std::string& code), void* data) {
 		if (m_compiling)
 			return;
 		
@@ -18,12 +18,14 @@ namespace bfide {
 		m_mergedPath = m_compilePath / "merged.bf";
 
 		m_compilerThread = std::thread([=]() {
-				editor->output("Compilation started\n");
+				if (m_editor != nullptr)
+					m_editor->output("Compilation started\n");
 				std::string fileName = file->getName(), error;
 
 				CompileResult res = compileFile(fileName, error);
 				if (res == ERROR) {
-					editor->compileError(error);
+					if (m_editor != nullptr)
+						m_editor->compileError(error);
 					m_compiling = false;
 					m_ss.str("");
 					m_lastCompSucc = false;
@@ -49,12 +51,14 @@ namespace bfide {
 		if (!m_compiling)
 			return ABORT;
 
-		editor->output("Compiling: " + filename + '\n');
+		if (m_editor != nullptr)
+			m_editor->output("Compiling: " + filename + '\n');
 
 		std::filesystem::path currPath = m_path / filename;
 		std::ifstream in(currPath);
 		if (!in.is_open()) {
-			editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
+			if (m_editor != nullptr)
+				m_editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
 			return ERROR;
 		}
 
@@ -85,10 +89,10 @@ namespace bfide {
 		if (!m_compiling)
 			return ABORT;
 
-		for (int l = 0; l < fileLines.size(); l++) {
+		for (size_t l = 0; l < fileLines.size(); l++) {
 			std::string& line = fileLines[l];
-			int lineSubstrStart = 0;
-			for (int i = 0; i < line.length(); i++) {
+			size_t lineSubstrStart = 0;
+			for (size_t i = 0; i < line.length(); i++) {
 				char c = line[i];
 				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}') {
 					error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
@@ -98,7 +102,7 @@ namespace bfide {
 				if (c == '{') {
 					m_ss << line.substr(lineSubstrStart, i - lineSubstrStart);
 					bool foundClose = false, foundImport = false;
-					int prev_l = l, prev_i = i;
+					size_t prev_l = l, prev_i = i;
 					i++;
 					for (true; l < fileLines.size(); l++) {
 						line = fileLines[l];
@@ -120,7 +124,7 @@ namespace bfide {
 							}
 							else if (importChar != ' ') {
 								foundImport = true;
-								int end = i, dot = std::string::npos;
+								size_t end = i, dot = std::string::npos;
 								for (true; end < line.length(); end++) {
 									if (line[end] == ' ' || line[end] == '}')
 										break;
@@ -147,12 +151,12 @@ namespace bfide {
 								}
 								i = end - 1;
 								/*
-								int ind = importLine.rfind('.', importLine.length() - 1 - i);
+								size_t ind = importLine.rfind('.', importLine.length() - 1 - i);
 								if (ind == std::string::npos) {
 									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
 									return false;
 								}
-								int end = importLine.find_last_of("} ", importLine.length());
+								size_t end = importLine.find_last_of("} ", importLine.length());
 								if (end == std::string::npos) // file extension ends at the end of the line, valid
 									end = importLine.length();
 
@@ -199,13 +203,13 @@ namespace bfide {
 		std::filesystem::create_directories(m_compilePath);
 		std::ofstream out(m_mergedPath);
 		if (!out.is_open()) {
-			editor->compileError(std::format("Error opening output file: %s\n", m_mergedPath.string()));
+			m_editor->compileError(std::format("Error opening output file: %s\n", m_mergedPath.string()));
 			return false;
 		}
 		out << m_code;
 		out.close();
 
-		editor->output("Done\n\n");
+		m_editor->output("Done\n\n");
 		return true;
 	}
 }

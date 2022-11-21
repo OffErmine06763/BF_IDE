@@ -25,11 +25,11 @@ namespace bfide {
 		if (ImGui::Button("Clear"))
 			clear();
 
-		int flags = (m_inputRequested ? ImGuiInputTextFlags_ReadOnly : 0);
-        if (ImGui::InputTextMultiline("##console", &m_text, { consoleSize.x * 0.9f, consoleSize.y * 0.9f }, ImGuiInputTextFlags_CtrlEnterForNewLine | ImGuiInputTextFlags_EnterReturnsTrue)) {
+		int flags = (m_inputRequested ? 0 : ImGuiInputTextFlags_ReadOnly) | ImGuiInputTextFlags_CtrlEnterForNewLine | ImGuiInputTextFlags_EnterReturnsTrue;
+        if (ImGui::InputTextMultiline("##console", &m_text, { consoleSize.x * 0.9f, consoleSize.y * 0.9f }, flags)) {
             char input;
             bool found = false;
-            for (int i = m_text.size() - 1; i >= 0; i--) {
+            for (int64_t i = m_text.size() - 1; i >= 0; i--) {
                 if (m_text[i] != ' ') {
                     if (m_text[i] == '$') {
                         break;

@@ -22,7 +22,7 @@ namespace bfide {
 			}
 		}
 		void init(Editor* editor) {
-			this->editor = editor;
+			this->m_editor = editor;
 		}
 
 		void run(std::string code);
@@ -38,7 +38,7 @@ namespace bfide {
 	private:
 		
 	private:
-		Editor* editor;
+		Editor* m_editor;
 		bool m_running = false;
 		std::vector<uint8_t> m_memory;
 		std::thread m_runnerThread;

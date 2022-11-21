@@ -32,7 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="bf\compile_tests\names.txt" />
-    <None Include="bf\merge_tests\test.bf" />
+    <None Include="bf\merge_tests\merge.bf" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="bf\compile_tests\par.txt" />

@@ -24,19 +24,19 @@ namespace UnitTests {
 	TEST_CLASS(UnitTestsClass) {
 	public:
 		TEST_METHOD(TestMerge) {
-			std::string expected_code = "";
+			std::string expected_code = "+.[-]><++--,";
 
 			bfide::Compiler compiler;
-			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/test.bf"));
-
-			compiler.compile(&file,
-				[](void* data, std::string code) {
-					Logger::WriteMessage(code.c_str());
-					std::string correct = *(std::string*)data;
-					// Assert::AreEqual(correct, code);
-				}, &expected_code);
-			Logger::WriteMessage("message");
-			Assert::IsTrue(true);
+			compiler.m_compiling = true;
+			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
+			file.open();
+			file.load();
+			std::string fileName = file.getName(), error;
+			compiler.m_path = file.getPath().parent_path();
+			compiler.m_compilePath = compiler.m_path / "generated";
+			compiler.m_mergedPath = compiler.m_compilePath / "merged.bf";
+			compiler.compileFile(fileName, error);
+			Assert::AreEqual(expected_code, compiler.m_ss.str());
 		}
 
 		TEST_METHOD(TestCompilation) {

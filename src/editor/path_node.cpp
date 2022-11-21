@@ -7,7 +7,7 @@ namespace bfide {
 		m_parent = parent;
 		m_path = path;
 		name = path.string();
-		int pos = -1;
+		int64_t pos = -1;
 		while ((pos = name.find('/', pos + 1)) != std::string::npos) {
 			name.replace(pos, 1, "\\");
 		}
