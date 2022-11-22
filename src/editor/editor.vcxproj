@@ -256,6 +256,7 @@
     <ClCompile Include="editor.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
+    <ClCompile Include="imgui_coloredtext.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="path_node.cpp" />
     <ClCompile Include="runner.cpp" />

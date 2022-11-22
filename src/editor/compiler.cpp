@@ -64,8 +64,7 @@ namespace bfide {
 
 		std::string line;
 		std::vector<std::string> fileLines;
-		while (!in.eof()) {
-			in >> line;
+		while (std::getline(in, line)) {
 			if (line.length() > 0)
 				fileLines.push_back(line);
 			line = "";
@@ -91,10 +90,10 @@ namespace bfide {
 
 		for (size_t l = 0; l < fileLines.size(); l++) {
 			std::string& line = fileLines[l];
-			size_t lineSubstrStart = 0;
+			size_t lineSubstrStart = 0, lineSubstrEnd = line.length();
 			for (size_t i = 0; i < line.length(); i++) {
 				char c = line[i];
-				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}') {
+				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}' && c != '/' && c != ' ' && c != '\t') {
 					error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
 					return ERROR;
 				}
@@ -150,28 +149,6 @@ namespace bfide {
 									}
 								}
 								i = end - 1;
-								/*
-								size_t ind = importLine.rfind('.', importLine.length() - 1 - i);
-								if (ind == std::string::npos) {
-									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
-									return false;
-								}
-								size_t end = importLine.find_last_of("} ", importLine.length());
-								if (end == std::string::npos) // file extension ends at the end of the line, valid
-									end = importLine.length();
-
-								std::string extension = importLine.substr(ind, end - ind),
-									importName = importLine.substr(i, ind - i);
-								if (!validExtension(extension)) {
-									error = std::format("Import filename requires a valid extension ('.bf') in file '{}' ({}:{})\n", filename, l, i);
-									return false;
-								}
-
-								if (recursive && !compileFile(importName.append(extension), error)) {
-									return false;
-								}
-								i = end - 1;
-								*/
 							}
 						}
 						if (foundClose) {
@@ -188,9 +165,28 @@ namespace bfide {
 					error = std::format("Too many '}}' in file '{}' ({}:{})\n", filename, l, i);
 					return ERROR;
 				}
+				else if (c == '/') {
+					if (i + 1 < line.length() && line[i + 1] == '/') {
+						lineSubstrEnd = i;
+						break;
+					}
+					else {
+						error = std::format("Invalid comment in file '{}' ({}:{}): expected '//'", filename, l, i);
+						return ERROR;
+					}
+				}
 			}
-			if (lineSubstrStart < line.length())
-				m_ss << line.substr(lineSubstrStart);
+			if (lineSubstrStart < line.length()) {
+				std::string sub = line.substr(lineSubstrStart, lineSubstrEnd - lineSubstrStart);
+				size_t ind = 0;
+				while ((ind = sub.find(' ', ind)) != std::string::npos)
+					sub.erase(ind, 1);
+				ind = 0;
+				while ((ind = sub.find('\t', ind)) != std::string::npos)
+					sub.erase(ind, 1);
+				if (sub.length() > 0)
+					m_ss << sub;
+			}
 		}
 
 		return SUCCESS;

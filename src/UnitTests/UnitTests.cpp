@@ -124,6 +124,10 @@ namespace UnitTests {
 			Assert::AreEqual(str, console.m_text);
 			console.write(str2);
 			Assert::AreEqual(str + str2, console.m_text);
+			console.write('c');
+			Assert::AreEqual(str + str2 + 'c', console.m_text);
+			console.write("ciao");
+			Assert::AreEqual(str + str2 + 'c' + "ciao", console.m_text);
 		}
 	};
 }

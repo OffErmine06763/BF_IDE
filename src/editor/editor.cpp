@@ -333,7 +333,9 @@ namespace bfide { // brIDE fuck
 		ImGui::End();
 	}
 	void Editor::renderFile(File& file) {
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
 		ImGui::InputTextMultiline("##", file.getContentRef(), { editorSize.x * 0.9f, editorSize.y * 0.9f }, ImGuiInputTextFlags_CallbackEdit, fileInputCallback, &file);
+		ImGui::PopStyleColor();
 	}
 	void Editor::renderFileSavePopup() {
 		if (!ImGui::IsPopupOpen("Save?"))
