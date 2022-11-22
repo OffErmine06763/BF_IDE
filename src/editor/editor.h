@@ -18,10 +18,10 @@ namespace bfide {
 	class Editor {
 	public:
 		Editor();
-        ~Editor();
-        void init(GLFWwindow* window);
-        void render(GLFWwindow* window);
-        ImVec4 getClearColor() {
+		~Editor();
+		void init(GLFWwindow* window);
+		void render(GLFWwindow* window);
+		ImVec4 getClearColor() {
 			return clear_color;
 		}
 
@@ -58,18 +58,18 @@ namespace bfide {
 		}
 
 
-        void requestInput() {
-            m_console.requestInput();
-        }
-        uint8_t consumeInput() {
-            return m_console.consumeInput();
-        }
-        bool inputReceived() {
-            return m_console.inputReceived();
-        }
-        void setColor(const ImVec4& color) {
-            m_console.setColor(color);
-        }
+		void requestInput() {
+			m_console.requestInput();
+		}
+		uint8_t consumeInput() {
+			return m_console.consumeInput();
+		}
+		bool inputReceived() {
+			return m_console.inputReceived();
+		}
+		void setColor(const ImVec4& color) {
+			m_console.setColor(color);
+		}
 		void notifyInputReceived() {
 			m_runner.notifyInputReceived();
 		}
@@ -78,19 +78,19 @@ namespace bfide {
 	private:
 		void renderTopBar(ImVec2& windowSize, ImVec2& windowPos);
 		void renderFolderTree(ImVec2& windowSize, ImVec2& windowPos);
-        void openInEditor(const PathNode& file);
+		void openInEditor(const PathNode& file);
 		void renderFolder(const PathNode* path);
 		void renderFilesEditor(ImVec2& windowSize, ImVec2& windowPos);
 		void renderFile(File& file);
 		void renderFileSavePopup();
-        void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
+		void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
 
 	private:
-        Compiler m_compiler;
+		Compiler m_compiler;
 		Console m_console;
-        Runner m_runner;
+		Runner m_runner;
 		std::vector<File> m_openedFiles;
-        int64_t m_currFile = -1, m_moveToFile = -1;
+		int64_t m_currFile = -1, m_moveToFile = -1;
 		std::vector<uint64_t> m_closeQueue, m_closeQueueSave;
 		int64_t m_frame = 0;
 		PathNode m_baseFolder;
@@ -98,9 +98,9 @@ namespace bfide {
 
 		bool m_isFolderOpen = false, m_firstOpen = true;
 
-        ImVec2 folderTreeSize = { -1, -1 }, prevFolderTreeSize = { -1, -1 };
-        ImVec2 editorSize = { -1, -1 }, prevEditorSize = { -1, -1 };
-        ImVec2 consoleSize = { -1, -1 }, prevConsoleSize = { -1, -1 };
+		ImVec2 folderTreeSize = { -1, -1 }, prevFolderTreeSize = { -1, -1 };
+		ImVec2 editorSize = { -1, -1 }, prevEditorSize = { -1, -1 };
+		ImVec2 consoleSize = { -1, -1 }, prevConsoleSize = { -1, -1 };
 
 		bool show_example = false;
 		bool show_demo_window = true;

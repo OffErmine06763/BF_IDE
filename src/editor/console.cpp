@@ -46,7 +46,7 @@ namespace bfide {
 				m_inputReceived = true;
 				m_inputRequested = false;
 				m_input = m_inputBuf[0];
-				m_text = m_text + "$ " + m_input;
+				m_text = m_text + "$ " + m_input + '\n';
 				m_editor->notifyInputReceived();
 			}
 		}

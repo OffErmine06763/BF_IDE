@@ -11,7 +11,7 @@ namespace bfide {
 		if (m_running) {
 			m_running = false;
 			m_cv.notify_one();
-            m_runnerThread.join();
+			m_runnerThread.join();
 			m_editor->output("\nStopping execution\n");
 		}
 	}
@@ -90,8 +90,8 @@ namespace bfide {
 				}
 				m_editor->output("\n--------\n");
 
-                if (m_running)
-    				m_runnerThread.detach();
+				if (m_running)
+					m_runnerThread.detach();
 				m_running = false;
 				m_memory.clear();
 			});
