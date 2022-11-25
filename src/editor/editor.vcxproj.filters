@@ -58,6 +58,9 @@
     <ClCompile Include="runner.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_coloredtext.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">

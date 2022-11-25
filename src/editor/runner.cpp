@@ -11,8 +11,9 @@ namespace bfide {
 		if (m_running) {
 			m_running = false;
 			m_cv.notify_one();
-            m_runnerThread.join();
-			m_editor->output("\nSopping execution\n");
+			m_runnerThread.join();
+			m_memory.clear();
+			m_editor->output("\nStopping execution\n");
 		}
 	}
 
@@ -36,8 +37,6 @@ namespace bfide {
 					case '-': m_memory[exec_ind]--;					break;
 					case '.': m_editor->output(m_memory[exec_ind]);	break;
 					case ',':
-						m_editor->output("\n$ ");
-
 						m_editor->requestInput();
 						m_cv.wait(lk, [=] { return m_editor->inputReceived(); });
 						m_memory[exec_ind] = m_editor->consumeInput();
@@ -46,8 +45,10 @@ namespace bfide {
 					case '<':
 						if (exec_ind == 0) {
 							std::string s(i, ' ');
+							m_running = false;
+							m_runnerThread.detach();
+							m_memory.clear();
 							m_editor->runtimeError(std::format("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n{}\n{}^ INDEX < 0\n", code, s));
-							
 							return;
 						}
 
@@ -57,6 +58,9 @@ namespace bfide {
 						exec_ind++;
 						if (exec_ind == max_size) {
 							std::string s(i, ' ');
+							m_running = false;
+							m_runnerThread.detach();
+							m_memory.clear();
 							m_editor->runtimeError(std::format("RUNTIME EXCEPTION: INDEX OUT OF BOUNDS\n{}\n{}^ INDEX > {}\n", code, s, max_size));
 							return;
 						}
@@ -90,10 +94,10 @@ namespace bfide {
 						break;
 					}
 				}
-				m_editor->output("\n");
+				m_editor->output("\n--------\n");
 
-                if (m_running)
-    				m_runnerThread.detach();
+				if (m_running)
+					m_runnerThread.detach();
 				m_running = false;
 				m_memory.clear();
 			});

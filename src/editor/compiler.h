@@ -1,5 +1,6 @@
 #pragma once
 #include "file.h"
+#include "runner.h"
 
 #include <thread>
 #include <vector>
@@ -31,6 +32,7 @@ namespace bfide {
 
 		void compile(File* file);
 		void compile(File* file, void (*callback)(void* data, std::string& code), void* data = nullptr);
+		void createExe(File* file);
 
 		bool lastCompSucc() { return m_lastCompSucc; }
 		std::string getCompiledCode() { return m_code; }
@@ -40,15 +42,20 @@ namespace bfide {
 		CompileResult parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive = true);
 		CompileResult compileFile(std::string& filename, std::string& error);
 		bool save();
+		bool toExecutable();
+		void createCppCode(std::string& dest);
 
 	private:
 		Editor* m_editor = nullptr;
 
-		std::filesystem::path m_mergedPath, m_compilePath, m_path;
+		std::filesystem::path m_mergedPath, m_cppPath, m_compilePath, m_path;
 		bool m_lastCompSucc = false, m_compiling = false;
 		std::string m_code;
 		std::stringstream m_ss;
 
 		std::thread m_compilerThread;
+
+		static constexpr const char* MERGED_FILENAME = "merged.bf", * CPP_FILENAME = "merged.cpp";
+		static std::string TEMPLATE_CPP;
 	};
 }
