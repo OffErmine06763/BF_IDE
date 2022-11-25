@@ -32,7 +32,7 @@ namespace bfide {
 		}
 
 	public:
-		static const uint16_t max_size = 30000;
+		static constexpr uint16_t max_size = 30000;
 
 
 	private:

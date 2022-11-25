@@ -57,6 +57,19 @@ namespace bfide {
 			runtimeError(std::string(1, c));
 		}
 
+		void setUpProgressBar(std::string& label) {
+			m_console.initProgBar(label);
+		}
+		void setUpProgressBar(const char* label) {
+			m_console.initProgBar(label);
+		}
+		void updateProgressBar(float percentage) {
+			m_console.updateProgBar(percentage);
+		}
+		void removeProgressBar() {
+			m_console.removeProgBar();
+		}
+
 
 		void requestInput() {
 			m_console.requestInput();

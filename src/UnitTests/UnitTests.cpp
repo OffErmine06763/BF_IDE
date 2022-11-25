@@ -78,7 +78,7 @@ namespace UnitTests {
 			}
 
 			std::vector<std::pair<std::vector<std::string>, bfide::CompileResult>> tests;
-			tests.reserve(namesCount * parCount);
+			tests.reserve(static_cast<size_t>(namesCount) * parCount);
 
 			for (int p = 0; p < parenthesis.size(); p++) {
 				std::string currPar = parenthesis[p];
