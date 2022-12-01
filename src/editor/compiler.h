@@ -45,6 +45,9 @@ namespace bfide {
 		bool toExecutable();
 		void createCppCode(std::string& dest);
 
+	public:
+		static constexpr char extra_symbols[] = { '\t', '{', '}', ' ', '/' };
+
 	private:
 		Editor* m_editor = nullptr;
 
@@ -56,6 +59,6 @@ namespace bfide {
 		std::thread m_compilerThread;
 
 		static constexpr const char* MERGED_FILENAME = "merged.bf", * CPP_FILENAME = "merged.cpp";
-		static std::string TEMPLATE_CPP;
+		static constexpr const char* TEMPLATE_CPP = "#include <iostream>\n\nint main() {{\nint ind = 0, size = {};\nchar *mem = (char*)malloc(sizeof(char) * size);\nfor (int i = 0; i < size; i++)\nmem[i] = 0;\n\n{}\ndelete[] mem;\n}}\n";
 	};
 }

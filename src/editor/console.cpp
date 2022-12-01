@@ -18,7 +18,8 @@ namespace bfide {
 		write(std::string(line));
 	}
 	void Console::write(char c) {
-		write(std::string(1, c));
+		if (isgraph(c) || c == '\n' || c == ' ' || c == '\t')
+			write(std::string(1, c));
 	}
 
 	void Console::requestInput() {

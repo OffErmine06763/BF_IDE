@@ -33,9 +33,10 @@ namespace bfide {
 					int count = 0;
 
 					switch (c) {
-					case '+': m_memory[exec_ind]++;					break;
-					case '-': m_memory[exec_ind]--;					break;
+					case '+': m_memory[exec_ind]++;							break;
+					case '-': m_memory[exec_ind]--;							break;
 					case '.': m_editor->output(m_memory[exec_ind]);	break;
+					case '\'': m_editor->output(std::to_string((int)m_memory[exec_ind]));	break;
 					case ',':
 						m_editor->requestInput();
 						m_cv.wait(lk, [=] { return m_editor->inputReceived(); });
@@ -94,7 +95,7 @@ namespace bfide {
 						break;
 					}
 				}
-				m_editor->output("\n--------\n");
+				m_editor->output("\n----------------\n");
 
 				if (m_running)
 					m_runnerThread.detach();

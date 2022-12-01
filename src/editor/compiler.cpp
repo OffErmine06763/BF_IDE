@@ -4,14 +4,6 @@
 #include <fstream>
 
 namespace bfide {
-	std::string Compiler::TEMPLATE_CPP =
-		"#include <iostream>\n\n"
-		"int main() {{\n"
-		"int ind = 0;\n"
-		"int mem[{}];\n\n"
-		"{}\n"
-		"}}\n";
-
 	void Compiler::compile(File* file) {
 		compile(file, [](void* data, std::string& code) {}, nullptr);
 	}
@@ -140,6 +132,17 @@ namespace bfide {
 			return true;
 		return false;
 	}
+	inline bool isInvalidChar(char c) {
+		for (char s : Runner::symbols) {
+			if (c == s)
+				return false;
+		}
+		for (char s : Compiler::extra_symbols) {
+			if (c == s)
+				return false;
+		}
+		return true;
+	}
 	CompileResult Compiler::parseFile(std::vector<std::string>& fileLines, const std::string& filename, std::string& error, bool recursive /* = true */) {
 		if (!m_compiling)
 			return ABORT;
@@ -149,7 +152,7 @@ namespace bfide {
 			size_t lineSubstrStart = 0, lineSubstrEnd = line.length();
 			for (size_t i = 0; i < line.length(); i++) {
 				char c = line[i];
-				if (c != '.' && c != ',' && c != '[' && c != ']' && c != '+' && c != '-' && c != '<' && c != '>' && c != '{' && c != '}' && c != '/' && c != ' ' && c != '\t') {
+				if (isInvalidChar(c)) {
 					error = std::format("Invalid character '{}' in file '{}' ({}:{})\n", c, filename, l, i);
 					return ERROR;
 				}
@@ -306,7 +309,7 @@ namespace bfide {
 				m_editor->updateProgressBar((float)i / m_code.length());
 			std::this_thread::sleep_for(std::chrono::duration<long long, std::milli>(25));
 		}
-		dest = std::format("#include <iostream>\n\nint main() {{\nint ind = 0, size = {};\nchar *mem = (char*)malloc(sizeof(char) * size);\nfor (int i = 0; i < size; i++)\nmem[i] = 0;\n\n{}\ndelete[] mem;\n}}\n", Runner::max_size, dest);
+		dest = std::format(TEMPLATE_CPP, Runner::max_size, dest);
 	}
 }
 
