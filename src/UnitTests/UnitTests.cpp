@@ -116,7 +116,10 @@ namespace UnitTests {
 				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
 					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
 					(res == bfide::CompileResult::SUCCESS ? 1 : 0)).c_str());
-				Assert::AreEqual((testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0), (res == bfide::CompileResult::SUCCESS ? 1 : 0), std::wstring(error.begin(), error.end()).c_str());
+				Assert::AreEqual(
+					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
+					(res == bfide::CompileResult::SUCCESS ? 1 : 0),
+					std::wstring(error.begin(), error.end()).c_str());
 			}
 			namesFile.close();
 			parFile.close();
