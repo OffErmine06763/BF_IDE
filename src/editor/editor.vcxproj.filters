@@ -55,11 +55,11 @@
     <ClCompile Include="compiler.cpp">
       <Filter>sources\bfide</Filter>
     </ClCompile>
-    <ClCompile Include="runner.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
     <ClCompile Include="imgui_coloredtext.cpp">
       <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="runner.cpp">
+      <Filter>sources\bfide</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -96,8 +96,10 @@
     <ClInclude Include="compiler.h">
       <Filter>sources\bfide</Filter>
     </ClInclude>
-    <ClInclude Include="runner.h" />
     <ClInclude Include="editor_pch.h">
+      <Filter>sources\bfide</Filter>
+    </ClInclude>
+    <ClInclude Include="runner.h">
       <Filter>sources\bfide</Filter>
     </ClInclude>
   </ItemGroup>
@@ -109,8 +111,5 @@
     <None Include="data.bfidedata">
       <Filter>sources\bfide</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="tests.bf" />
   </ItemGroup>
 </Project>

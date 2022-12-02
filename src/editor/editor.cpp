@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <thread>
 
-namespace bfide { // brIDE fuck
+namespace bfide {
 	const std::string Editor::DATA_FOLDER_KEY = "folder";
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
