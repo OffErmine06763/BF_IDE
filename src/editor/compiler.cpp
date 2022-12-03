@@ -4,10 +4,6 @@
 #include <fstream>
 
 namespace bfide {
-	void Compiler::compile(File* file) {
-		compile(file, [](void* data, std::string& code) {}, nullptr);
-	}
-
 	void Compiler::createExe(File* file) {
 		if (m_compiling)
 			return;
@@ -55,44 +51,60 @@ namespace bfide {
 				m_editor->removeProgressBar();
 		});
 	}
+
+	void Compiler::compile(File* file) {
+		compile(file, [](void* data, std::string& code) {}, nullptr);
+	}
 	void Compiler::compile(File* file, void (*callback)(void* data, std::string& code), void* data) {
 		if (m_compiling)
 			return;
-		
+
+		m_compilerThread = std::thread([=]() {
+			CompileResult res = compileSyncronous(file);
+				if (res == ERROR) {
+					m_compilerThread.detach();
+				}
+				else if (res == SUCCESS) {
+					m_compilerThread.detach();
+					callback(data, m_code);
+				}
+			});
+	}
+	CompileResult Compiler::compileSyncronous(File* file) {
+		if (m_compiling)
+			return RUNNING;
+
 		m_lastCompSucc = false;
 		m_compiling = true;
 		m_path = file->getPath().parent_path();
 		m_compilePath = m_path / "generated";
 		m_mergedPath = m_compilePath / "merged.bf";
 
-		m_compilerThread = std::thread([=]() {
-				if (m_editor != nullptr)
-					m_editor->output("Compilation started\n");
-				std::string fileName = file->getName(), error;
+		if (m_editor != nullptr)
+			m_editor->output("Compilation started\n");
+		std::string fileName = file->getName(), error;
 
-				CompileResult res = compileFile(fileName, error);
-				if (res == ERROR) {
-					if (m_editor != nullptr)
-						m_editor->compileError(error);
-					m_compiling = false;
-					m_ss.str("");
-					m_lastCompSucc = false;
-					m_compilerThread.detach();
-				}
-				else if (res == ABORT) {
-					m_compiling = false;
-					m_ss.str("");
-					m_lastCompSucc = false;
-				}
-				else if (res == SUCCESS) {
-					m_code = m_ss.str();
-					m_ss.str("");
-					m_lastCompSucc = save();
-					m_compiling = false;
-					m_compilerThread.detach();
-					callback(data, m_code);
-				}
-			});
+		CompileResult res = compileFile(fileName, error);
+		if (res == ERROR) {
+			if (m_editor != nullptr)
+				m_editor->compileError(error);
+			m_compiling = false;
+			m_ss.str("");
+			m_lastCompSucc = false;
+		}
+		else if (res == ABORT) {
+			m_compiling = false;
+			m_ss.str("");
+			m_lastCompSucc = false;
+		}
+		else if (res == SUCCESS) {
+			m_code = m_ss.str();
+			m_ss.str("");
+			m_lastCompSucc = save();
+			m_compiling = false;
+		}
+
+		return res;
 	}
 
 	CompileResult Compiler::compileFile(std::string& filename, std::string& error) {
@@ -264,7 +276,8 @@ namespace bfide {
 		out << m_code;
 		out.close();
 
-		m_editor->output("Done\n\n");
+		if (m_editor != nullptr)
+			m_editor->output("Done\n\n");
 		return true;
 	}
 	bool Compiler::toExecutable() {
@@ -313,4 +326,5 @@ namespace bfide {
 	}
 }
 
-// todo: compiled of every single included file to parse it only once, << the saved file content into the m_ss
+// TODO: compiled of every single included file to parse it only once, << the saved file content into the m_ss
+// TODO: prevent recursive includes

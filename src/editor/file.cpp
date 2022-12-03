@@ -9,12 +9,15 @@ namespace bfide {
 		m_name = path.filename().string();
 	}
 
-    void File::load() {
+    bool File::load() {
         std::ifstream in(m_path.string());
+        if (!in.is_open())
+            return false;
         std::stringstream ss;
         ss << in.rdbuf();
         m_content = ss.str();
         in.close();
+        return true;
     }
 	void File::open() {
         m_open = true;

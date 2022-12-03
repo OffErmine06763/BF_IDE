@@ -7,7 +7,7 @@ namespace bfide {
 	public:
 		File(std::filesystem::path path);
 
-		void load();
+		bool load();
 		void open();
 		bool inline isOpen() { return m_open; }
 		bool* isOpenRef() { return &m_open; }

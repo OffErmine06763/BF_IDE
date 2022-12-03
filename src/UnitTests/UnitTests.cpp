@@ -23,25 +23,19 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace UnitTests {
 	TEST_CLASS(UnitTestsClass) {
 	public:
-		TEST_METHOD(TestMerge) {
-			std::string expected_code = "+.[-]><++--,,,,...";
-
+		TEST_METHOD(Test_Compilation) {
 			bfide::Compiler compiler;
 			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
 			file.open();
-			file.load();
-			std::string fileName = file.getName(), error;
+			Assert::IsTrue(file.load(), L"Failed to load .bf file");
 
-			compiler.m_compiling = true;
-			compiler.m_path = file.getPath().parent_path();
-			compiler.m_compilePath = compiler.m_path / "generated";
-			compiler.m_mergedPath = compiler.m_compilePath / "merged.bf";
-			compiler.compileFile(fileName, error);
+			compiler.compileSyncronous(&file);
 
-			Assert::AreEqual(expected_code, compiler.m_ss.str());
+			std::string expected_code = "+.[-]><++--,,,,...";
+			Assert::AreEqual(expected_code, compiler.m_code);
 		}
 
-		TEST_METHOD(TestCompilation) {
+		TEST_METHOD(Test_IncludesValidation) {
 			bfide::Compiler compiler;
 			compiler.m_compiling = true;
 
@@ -125,7 +119,7 @@ namespace UnitTests {
 			parFile.close();
 		}
 
-		TEST_METHOD(TestConsoleOut) {
+		TEST_METHOD(Test_ConsoleOut) {
 			bfide::Console console;
 			std::string str = "ciao\nmondo", str2 = "\ntest";
 			console.write(str);

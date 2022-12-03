@@ -32,9 +32,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="bf\compile_tests\names.txt" />
-    <None Include="bf\merge_tests\merge.bf" />
-    <None Include="bf\merge_tests\inc.bf" />
-    <None Include="bf\merge_tests\inc2.bf" />
+    <None Include="bf\merge_tests\inc.bf">
+      <Filter>bf</Filter>
+    </None>
+    <None Include="bf\merge_tests\inc2.bf">
+      <Filter>bf</Filter>
+    </None>
+    <None Include="bf\merge_tests\merge.bf">
+      <Filter>bf</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="bf\compile_tests\par.txt" />

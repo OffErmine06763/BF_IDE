@@ -33,9 +33,9 @@ namespace bfide {
 					int count = 0;
 
 					switch (c) {
-					case '+': m_memory[exec_ind]++;							break;
-					case '-': m_memory[exec_ind]--;							break;
-					case '.': m_editor->output(m_memory[exec_ind]);	break;
+					case '+': m_memory[exec_ind]++;								break;
+					case '-': m_memory[exec_ind]--;								break;
+					case '.': m_editor->output(m_memory[exec_ind]);			break;
 					case '\'': m_editor->output(std::to_string((int)m_memory[exec_ind]));	break;
 					case ',':
 						m_editor->requestInput();

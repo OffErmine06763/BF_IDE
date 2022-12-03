@@ -11,7 +11,7 @@ namespace UnitTests {
 
 namespace bfide {
 	enum CompileResult {
-		SUCCESS = 0, ERROR, ABORT
+		SUCCESS = 0, ERROR, ABORT, RUNNING
 	};
 
 	class Editor;
@@ -32,6 +32,7 @@ namespace bfide {
 
 		void compile(File* file);
 		void compile(File* file, void (*callback)(void* data, std::string& code), void* data = nullptr);
+		CompileResult compileSyncronous(File* file);
 		void createExe(File* file);
 
 		bool lastCompSucc() { return m_lastCompSucc; }
@@ -58,7 +59,7 @@ namespace bfide {
 
 		std::thread m_compilerThread;
 
-		static constexpr const char* MERGED_FILENAME = "merged.bf", * CPP_FILENAME = "merged.cpp";
-		static constexpr const char* TEMPLATE_CPP = "#include <iostream>\n\nint main() {{\nint ind = 0, size = {};\nchar *mem = (char*)malloc(sizeof(char) * size);\nfor (int i = 0; i < size; i++)\nmem[i] = 0;\n\n{}\ndelete[] mem;\n}}\n";
+		static constexpr const char* MERGED_FILENAME = "merged.bf", * CPP_FILENAME = "merged.cpp",
+			* TEMPLATE_CPP = "#include <iostream>\n\nint main() {{\nint ind = 0, size = {};\nchar *mem = (char*)malloc(sizeof(char) * size);\nfor (int i = 0; i < size; i++)\nmem[i] = 0;\n\n{}\ndelete[] mem;\n}}\n";
 	};
 }

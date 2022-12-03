@@ -128,3 +128,9 @@ namespace bfide {
 // +[----->+++<]>+.+.[--->+<]>---.+[----->+<]>.++.--.
 // TODO: side by side memory viewer
 // TODO: befunge
+/* TODO:
+*	mock class for Editor (and other classes eventually) to remove:
+*		if (m_editor != nullptr) ...
+*	
+*	
+*/
