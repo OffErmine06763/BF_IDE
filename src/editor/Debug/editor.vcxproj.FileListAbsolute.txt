@@ -1,2 +1,0 @@
-F:\DEV\Sources\VisualStudio\BF_IDE\src\editor\Debug\editor.exe
-C:\Users\aless\Documents\Docs_offline\Dev\BF_IDE\src\editor\Debug\editor.exe

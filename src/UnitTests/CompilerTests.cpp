@@ -1,13 +1,15 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#include "compiler.h"
-#include "mocks/MockEditor.h"
-#include "dummies/DummyEditor.h"
-
 #include <vector>
 #include <string>
 #include <fstream>
+
+#include "compiler.h"
+#include "mocks/MockEditor.h"
+#include "dummies/DummyEditor.h"
+#include "spies/SpyEditor.h"
+
 
 #ifndef TEST_CASE_DIRECTORY
 #define TEST_CASE_DIRECTORY GetDirectoryName(__FILE__)
@@ -22,16 +24,17 @@ std::string GetDirectoryName(std::string path) {
 #endif // !TEST_CASE_DIRECTORY
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+using namespace bfide;
 
 namespace UnitTests {
 	TEST_CLASS(CompilerTestsClass) {
 	public:
 		TEST_METHOD(Test_Compilation) {
-			bfide::Compiler compiler;
-			bfide::DummyEditor dummyEditor;
+			Compiler compiler;
+			DummyEditor dummyEditor;
 
 			compiler.init(&dummyEditor);
-			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
+			File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
 			file.open();
 			Assert::IsTrue(file.load(), L"Failed to load .bf file");
 
@@ -41,9 +44,25 @@ namespace UnitTests {
 			Assert::AreEqual(expected_code, compiler.getCompiledCode());
 		}
 
+		TEST_METHOD(Test_RecursiveCompilation) {
+			Compiler compiler;
+			SpyEditor spyEditor;
+
+			compiler.init(&spyEditor);
+			File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/recursive_tests/rec1.bf"));
+			file.open();
+			Assert::IsTrue(file.load(), L"Failed to load .bf file");
+
+			CompileResult res = compiler.compileSyncronous(&file);
+			Assert::AreEqual((int)CompileResult::ERROR, (int)res);
+			Assert::AreEqual(
+				std::format(Compiler::ERR_MSG_RECURSIVE_COMPILATION, file.getName()),
+				spyEditor.getLastCompileErrorMessage());
+		}
+
 		TEST_METHOD(Test_IncludesValidation) {
-			bfide::Compiler compiler;
-			bfide::DummyEditor dummyEditor;
+			Compiler compiler;
+			DummyEditor dummyEditor;
 
 			compiler.init(&dummyEditor);
 			compiler.m_compiling = true;
@@ -58,7 +77,7 @@ namespace UnitTests {
 			namesFile >> namesCount;
 
 			std::vector<std::string> parenthesis, names;
-			std::vector<bfide::CompileResult> correctResults;
+			std::vector<CompileResult> correctResults;
 			parenthesis.reserve(parCount);
 			names.reserve(namesCount);
 			correctResults.reserve(namesCount);
@@ -80,10 +99,10 @@ namespace UnitTests {
 				names.push_back(line);
 				bool res;
 				namesFile >> res;
-				correctResults.push_back(res ? bfide::CompileResult::SUCCESS : bfide::CompileResult::ERROR);
+				correctResults.push_back(res ? SUCCESS : ERROR);
 			}
 
-			std::vector<std::pair<std::vector<std::string>, bfide::CompileResult>> tests;
+			std::vector<std::pair<std::vector<std::string>, CompileResult>> tests;
 			tests.reserve(static_cast<size_t>(namesCount) * parCount);
 
 			// creazione test
@@ -111,17 +130,17 @@ namespace UnitTests {
 
 			// esecuzione test
 			std::string name = "Test", error;
-			for (std::pair<std::vector<std::string>, bfide::CompileResult>& testCase : tests) {
+			for (std::pair<std::vector<std::string>, CompileResult>& testCase : tests) {
 				for (std::string& str : testCase.first) {
 					Logger::WriteMessage((str + '\n').c_str());
 				}
-				bfide::CompileResult res = compiler.parseFile(testCase.first, name, error, false);
+				CompileResult res = compiler.parseFile(testCase.first, name, error, false);
 				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
-					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
-					(res == bfide::CompileResult::SUCCESS ? 1 : 0)).c_str());
+					(testCase.second == SUCCESS ? 1 : 0),
+					(res == SUCCESS ? 1 : 0)).c_str());
 				Assert::AreEqual(
-					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
-					(res == bfide::CompileResult::SUCCESS ? 1 : 0),
+					(testCase.second == SUCCESS ? 1 : 0),
+					(res == SUCCESS ? 1 : 0),
 					std::wstring(error.begin(), error.end()).c_str());
 			}
 			namesFile.close();

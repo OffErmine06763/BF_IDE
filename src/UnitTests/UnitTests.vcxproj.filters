@@ -51,6 +51,9 @@
     <ClCompile Include="dummies\DummyRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="spies\SpyEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -83,6 +86,9 @@
     <ClInclude Include="dummies\DummyRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="spies\SpyEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="bf\compile_tests\names.txt" />
@@ -95,6 +101,7 @@
     <None Include="bf\merge_tests\merge.bf">
       <Filter>bf</Filter>
     </None>
+    <None Include="bf\recursive_tests\rec2.bf" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="bf\compile_tests\par.txt" />

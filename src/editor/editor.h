@@ -19,74 +19,32 @@ namespace bfide {
 	public:
 		Editor(Console* console, Compiler* compiler, Runner* runner);
 		~Editor();
-		void init(GLFWwindow* window);
-		void render(GLFWwindow* window);
-		ImVec4 getClearColor() {
+		virtual void init(GLFWwindow* window);
+		virtual void render(GLFWwindow* window);
+		virtual ImVec4 getClearColor() {
 			return clear_color;
 		}
 
-		void output(const std::string& line) {
-			m_console->write(line);
-		}
-		void output(const char* const line) {
-			m_console->write(line);
-		}
-		void output(char line) {
-			m_console->write(line);
-		}
-		void compileError(const std::string& line) {
-			m_console->setColor(Console::RED);
-			m_console->write(line);
-			m_console->setColor(Console::WHITE);
-		}
-		void compileError(const char* const line) {
-			compileError(std::string(line));
-		}
-		void compileError(char c) {
-			compileError(std::string(1, c));
-		}
-		void runtimeError(const std::string& line) {
-			m_console->setColor(Console::RED);
-			m_console->write(line);
-			m_console->setColor(Console::WHITE);
-		}
-		void runtimeError(const char* const line) {
-			runtimeError(std::string(line));
-		}
-		void runtimeError(char c) {
-			runtimeError(std::string(1, c));
-		}
+		virtual void output(const std::string& line);
+		virtual void output(const char* const line);
+		virtual void output(char line);
+		virtual void compileError(const std::string& line);
+		virtual void compileError(const char* const line);
+		virtual void compileError(char c);
+		virtual void runtimeError(const std::string& line);
+		virtual void runtimeError(const char* const line);
+		virtual void runtimeError(char c);
 
-		void setUpProgressBar(std::string& label) {
-			m_console->initProgBar(label);
-		}
-		void setUpProgressBar(const char* label) {
-			m_console->initProgBar(label);
-		}
-		void updateProgressBar(float percentage) {
-			m_console->updateProgBar(percentage);
-		}
-		void removeProgressBar() {
-			m_console->removeProgBar();
-		}
+		virtual void setUpProgressBar(std::string& label);
+		virtual void setUpProgressBar(const char* label);
+		virtual void updateProgressBar(float percentage);
+		virtual void removeProgressBar();
 
-
-		void requestInput() {
-			m_console->requestInput();
-		}
-		uint8_t consumeInput() {
-			return m_console->consumeInput();
-		}
-		bool inputReceived() {
-			return m_console->inputReceived();
-		}
-		void setColor(const ImVec4& color) {
-			m_console->setColor(color);
-		}
-		void notifyInputReceived() {
-			m_runner->notifyInputReceived();
-		}
-
+		virtual void requestInput();
+		virtual uint8_t consumeInput();
+		virtual bool inputReceived();
+		virtual void setColor(const ImVec4& color);
+		virtual void notifyInputReceived();
 
 	private:
 		void renderTopBar(ImVec2& windowSize, ImVec2& windowPos);

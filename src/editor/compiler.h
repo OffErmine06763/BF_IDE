@@ -4,12 +4,27 @@
 
 #include <thread>
 #include <vector>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace UnitTests {
 	class CompilerTestsClass;
 }
 
 namespace bfide {
+	/*enum CompileResultCode {
+		SUCCESS = 0, ERROR, ABORT, RUNNING
+	};
+	enum CompileErrorCode {
+		OK = 0, RECURSIVE, 
+	};
+	struct CompileResult {
+		CompileResultCode resultCode;
+		CompileErrorCode errorCode;
+		std::string errorMessage;
+	}; */
+
 	enum CompileResult {
 		SUCCESS = 0, ERROR, ABORT, RUNNING
 	};
@@ -56,10 +71,13 @@ namespace bfide {
 		bool m_lastCompSucc = false, m_compiling = false;
 		std::string m_code;
 		std::stringstream m_ss;
+		std::unordered_map<std::string, std::string> n_compileCache;
+		std::unordered_set<std::string> m_includeQueue;
 
 		std::thread m_compilerThread;
 
 		static constexpr const char* MERGED_FILENAME = "merged.bf", * CPP_FILENAME = "merged.cpp",
 			* TEMPLATE_CPP = "#include <iostream>\n\nint main() {{\nint ind = 0, size = {};\nchar *mem = (char*)malloc(sizeof(char) * size);\nfor (int i = 0; i < size; i++)\nmem[i] = 0;\n\n{}\ndelete[] mem;\n}}\n";
+		static constexpr const char* ERR_MSG_RECURSIVE_COMPILATION = "Recursive compilation of file: {}";
 	};
 }

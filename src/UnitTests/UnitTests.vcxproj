@@ -258,6 +258,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="CompilerTests.cpp" />
+    <ClCompile Include="spies\SpyEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dummies\DummyCompiler.h" />
@@ -269,6 +270,7 @@
     <ClInclude Include="mocks\MockEditor.h" />
     <ClInclude Include="mocks\MockRunner.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="spies\SpyEditor.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
@@ -281,6 +283,7 @@
     <None Include="bf\merge_tests\inc.bf" />
     <None Include="bf\merge_tests\inc2.bf" />
     <None Include="bf\merge_tests\merge.bf" />
+    <None Include="bf\recursive_tests\rec2.bf" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="bf\compile_tests\par.txt" />

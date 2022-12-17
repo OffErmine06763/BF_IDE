@@ -82,21 +82,18 @@ namespace bfide {
 		CompileResult res = compileFile(fileName, error);
 		if (res == ERROR) {
 			m_editor->compileError(error);
-			m_compiling = false;
-			m_ss.str("");
 			m_lastCompSucc = false;
 		}
 		else if (res == ABORT) {
-			m_compiling = false;
-			m_ss.str("");
 			m_lastCompSucc = false;
 		}
 		else if (res == SUCCESS) {
 			m_code = m_ss.str();
-			m_ss.str("");
 			m_lastCompSucc = save();
-			m_compiling = false;
 		}
+		m_compiling = false;
+		m_ss.str("");
+		m_includeQueue.clear();
 
 		return res;
 	}
@@ -104,13 +101,18 @@ namespace bfide {
 	CompileResult Compiler::compileFile(std::string& filename, std::string& error) {
 		if (!m_compiling)
 			return ABORT;
+		if (m_includeQueue.contains(filename)) {
+			error = std::format(ERR_MSG_RECURSIVE_COMPILATION, filename);
+			return ERROR;
+		}
+		m_includeQueue.insert(filename);
 
 		m_editor->output("Compiling: " + filename + '\n');
 
 		std::filesystem::path currPath = m_path / filename;
 		std::ifstream in(currPath);
 		if (!in.is_open()) {
-			m_editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
+			error = std::format("Error opening file: {}\n", currPath.string());
 			return ERROR;
 		}
 
@@ -124,10 +126,14 @@ namespace bfide {
 		in.close();
 
 		CompileResult res = parseFile(fileLines, filename, error);
-		if (res == ABORT || res == ERROR)
+		if (res == ABORT || res == ERROR) {
+			m_includeQueue.erase(filename);
 			return res;
+		}
 
-		// cache here
+		// todo: add caching
+
+		m_includeQueue.erase(filename);
 		return SUCCESS;
 	}
 

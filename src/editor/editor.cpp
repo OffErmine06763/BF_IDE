@@ -410,4 +410,69 @@ namespace bfide {
 
 		ImGui::End();
 	}
+
+
+
+	void Editor::output(const std::string& line) {
+		m_console->write(line);
+	}
+	void Editor::output(const char* const line) {
+		m_console->write(line);
+	}
+	void Editor::output(char line) {
+		m_console->write(line);
+	}
+	void Editor::compileError(const std::string& line) {
+		m_console->setColor(Console::RED);
+		m_console->write(line);
+		m_console->setColor(Console::WHITE);
+	}
+	void Editor::compileError(const char* const line) {
+		compileError(std::string(line));
+	}
+	void Editor::compileError(char c) {
+		compileError(std::string(1, c));
+	}
+	void Editor::runtimeError(const std::string& line) {
+		m_console->setColor(Console::RED);
+		m_console->write(line);
+		m_console->setColor(Console::WHITE);
+	}
+	void Editor::runtimeError(const char* const line) {
+		runtimeError(std::string(line));
+	}
+	void Editor::runtimeError(char c) {
+		runtimeError(std::string(1, c));
+	}
+
+	void Editor::setUpProgressBar(std::string& label) {
+		m_console->initProgBar(label);
+	}
+	void Editor::setUpProgressBar(const char* label) {
+		m_console->initProgBar(label);
+	}
+	void Editor::updateProgressBar(float percentage) {
+		m_console->updateProgBar(percentage);
+	}
+	void Editor::removeProgressBar() {
+		m_console->removeProgBar();
+	}
+
+
+	void Editor::requestInput() {
+		m_console->requestInput();
+	}
+	uint8_t Editor::consumeInput() {
+		return m_console->consumeInput();
+	}
+	bool Editor::inputReceived() {
+		return m_console->inputReceived();
+	}
+	void Editor::setColor(const ImVec4& color) {
+		m_console->setColor(color);
+	}
+	void Editor::notifyInputReceived() {
+		m_runner->notifyInputReceived();
+	}
+
 }
