@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "mocks/MockEditor.h"
+#include "dummies/DummyEditor.h"
 
 #include <vector>
 #include <string>
@@ -27,9 +28,9 @@ namespace UnitTests {
 	public:
 		TEST_METHOD(Test_Compilation) {
 			bfide::Compiler compiler;
-			bfide::MockEditor mockEditor(nullptr, &compiler, nullptr);
+			bfide::DummyEditor dummyEditor;
 
-			compiler.init(&mockEditor);
+			compiler.init(&dummyEditor);
 			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
 			file.open();
 			Assert::IsTrue(file.load(), L"Failed to load .bf file");
@@ -42,9 +43,9 @@ namespace UnitTests {
 
 		TEST_METHOD(Test_IncludesValidation) {
 			bfide::Compiler compiler;
-			bfide::MockEditor mockEditor(nullptr, &compiler, nullptr);
+			bfide::DummyEditor dummyEditor;
 
-			compiler.init(&mockEditor);
+			compiler.init(&dummyEditor);
 			compiler.m_compiling = true;
 
 			std::ifstream namesFile(TEST_CASE_DIRECTORY + "bf/compile_tests/names.txt");
