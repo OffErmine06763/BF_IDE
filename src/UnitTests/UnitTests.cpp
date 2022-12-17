@@ -12,8 +12,7 @@
 
 std::string GetDirectoryName(std::string path) {
 	const size_t last_slash_idx = path.rfind('\\');
-	if (std::string::npos != last_slash_idx)
-	{
+	if (std::string::npos != last_slash_idx) {
 		return path.substr(0, last_slash_idx + 1);
 	}
 	return "";
@@ -24,23 +23,19 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace UnitTests {
 	TEST_CLASS(UnitTestsClass) {
 	public:
-		TEST_METHOD(TestMerge) {
-			std::string expected_code = "+.[-]><++--,,,,...";
-
+		TEST_METHOD(Test_Compilation) {
 			bfide::Compiler compiler;
-			compiler.m_compiling = true;
 			bfide::File file(std::filesystem::path(TEST_CASE_DIRECTORY + "bf/merge_tests/merge.bf"));
 			file.open();
-			file.load();
-			std::string fileName = file.getName(), error;
-			compiler.m_path = file.getPath().parent_path();
-			compiler.m_compilePath = compiler.m_path / "generated";
-			compiler.m_mergedPath = compiler.m_compilePath / "merged.bf";
-			compiler.compileFile(fileName, error);
-			Assert::AreEqual(expected_code, compiler.m_ss.str());
+			Assert::IsTrue(file.load(), L"Failed to load .bf file");
+
+			compiler.compileSyncronous(&file);
+
+			std::string expected_code = "+.[-]><++--,,,,...";
+			Assert::AreEqual(expected_code, compiler.m_code);
 		}
 
-		TEST_METHOD(TestCompilation) {
+		TEST_METHOD(Test_IncludesValidation) {
 			bfide::Compiler compiler;
 			compiler.m_compiling = true;
 
@@ -49,14 +44,16 @@ namespace UnitTests {
 
 			Assert::AreEqual(true, namesFile.is_open() && parFile.is_open(), L"Faild to open files");
 
-			std::vector<std::string> parenthesis, names;
-			std::vector<bfide::CompileResult> correctResults;
 			int parCount, namesCount;
 			parFile >> parCount;
 			namesFile >> namesCount;
+
+			std::vector<std::string> parenthesis, names;
+			std::vector<bfide::CompileResult> correctResults;
 			parenthesis.reserve(parCount);
 			names.reserve(namesCount);
 			correctResults.reserve(namesCount);
+
 			std::string line;
 
 			// read parenthesis
@@ -78,8 +75,9 @@ namespace UnitTests {
 			}
 
 			std::vector<std::pair<std::vector<std::string>, bfide::CompileResult>> tests;
-			tests.reserve(namesCount * parCount);
+			tests.reserve(static_cast<size_t>(namesCount) * parCount);
 
+			// creazione test
 			for (int p = 0; p < parenthesis.size(); p++) {
 				std::string currPar = parenthesis[p];
 				for (int n = 0; n < names.size(); n++) {
@@ -102,6 +100,7 @@ namespace UnitTests {
 				}
 			}
 
+			// esecuzione test
 			std::string name = "Test", error;
 			for (std::pair<std::vector<std::string>, bfide::CompileResult>& testCase : tests) {
 				for (std::string& str : testCase.first) {
@@ -111,19 +110,32 @@ namespace UnitTests {
 				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
 					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
 					(res == bfide::CompileResult::SUCCESS ? 1 : 0)).c_str());
-				Assert::AreEqual((testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0), (res == bfide::CompileResult::SUCCESS ? 1 : 0), std::wstring(error.begin(), error.end()).c_str());
+				Assert::AreEqual(
+					(testCase.second == bfide::CompileResult::SUCCESS ? 1 : 0),
+					(res == bfide::CompileResult::SUCCESS ? 1 : 0),
+					std::wstring(error.begin(), error.end()).c_str());
 			}
 			namesFile.close();
 			parFile.close();
 		}
 
-		TEST_METHOD(TestConsoleOut) {
+		TEST_METHOD(Test_ConsoleOut) {
 			bfide::Console console;
 			std::string str = "ciao\nmondo", str2 = "\ntest";
 			console.write(str);
 			Assert::AreEqual(str, console.m_text);
 			console.write(str2);
 			Assert::AreEqual(str + str2, console.m_text);
+			console.write('c');
+			Assert::AreEqual(str + str2 + 'c', console.m_text);
+			console.write("ciao");
+			Assert::AreEqual(str + str2 + 'c' + "ciao", console.m_text);
+
+			console.clear();
+			console.write("test");
+			console.write('\0');
+			console.write("test");
+			Assert::AreEqual("testtest", console.m_text.c_str());
 		}
 	};
 }

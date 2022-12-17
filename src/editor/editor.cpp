@@ -3,8 +3,9 @@
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <filesystem>
+#include <thread>
 
-namespace bfide { // brIDE fuck
+namespace bfide {
 	const std::string Editor::DATA_FOLDER_KEY = "folder";
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
@@ -12,7 +13,16 @@ namespace bfide { // brIDE fuck
 		m_compiler.init(this);
 		m_runner.init(this);
 		m_console.init(this);
+	}
+	Editor::~Editor() {
+		std::ofstream out("data.bfidedata");
+		for (const auto& entry : m_data) {
+			out << entry.first << " = " << entry.second << '\n';
+		}
+		out.close();
+	}
 
+	void Editor::init(GLFWwindow* window) {
 		std::ifstream in("data.bfidedata");
 		if (in.is_open()) {
 			std::string field, value;
@@ -34,16 +44,7 @@ namespace bfide { // brIDE fuck
 				m_data.insert({ DATA_OPENED_KEY, "true" });
 			}
 		}
-	}
-	Editor::~Editor() {
-		std::ofstream out("data.bfidedata");
-		for (const auto& entry : m_data) {
-			out << entry.first << " = " << entry.second << '\n';
-		}
-		out.close();
-	}
 
-	void Editor::init(GLFWwindow* window) {
 		if (m_firstOpen) {
 			int windowWidth, windowHeight, windowPosX, windowPosY;
 			glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -145,6 +146,10 @@ namespace bfide { // brIDE fuck
 						Runner* runner = (Runner*)data;
 						runner->run(code);
 					}, (void*)&m_runner);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Generate Exe")) {
+				m_compiler.createExe(&m_openedFiles[m_currFile]);
 			}
 		}
 		if (m_compiler.lastCompSucc() && !m_runner.isRunning()) {
@@ -333,7 +338,9 @@ namespace bfide { // brIDE fuck
 		ImGui::End();
 	}
 	void Editor::renderFile(File& file) {
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
 		ImGui::InputTextMultiline("##", file.getContentRef(), { editorSize.x * 0.9f, editorSize.y * 0.9f }, ImGuiInputTextFlags_CallbackEdit, fileInputCallback, &file);
+		ImGui::PopStyleColor();
 	}
 	void Editor::renderFileSavePopup() {
 		if (!ImGui::IsPopupOpen("Save?"))

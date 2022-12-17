@@ -27,6 +27,27 @@ namespace bfide {
 		void requestInput();
 		char consumeInput();
 
+		void initProgBar(std::string& label) {
+			initProgBar(label.c_str());
+		}
+		void initProgBar(const char* label) {
+			m_hasProgBar = true;
+			m_progBarLabel = label;
+			m_progBarPercentage = 0;
+		}
+		void updateProgBar(float percentage) {
+			if (!m_hasProgBar)
+				return;
+			if (percentage >= 1.0f) {
+				m_hasProgBar = false;
+				return;
+			}
+			m_progBarPercentage = percentage;
+		}
+		void removeProgBar() {
+			m_hasProgBar = false;
+		}
+
 		void setColor(ImVec4 color) {
 			
 		}
@@ -39,9 +60,10 @@ namespace bfide {
 
 	private:
 		Editor* m_editor = nullptr;
-		std::string m_text;
+		std::string m_text, m_progBarLabel;
+		float m_progBarPercentage;
 
-		bool m_inputRequested = false, m_inputReceived = false;
+		bool m_inputRequested = false, m_inputReceived = false, m_hasProgBar = false;
 		char m_input;
 		char m_inputBuf[2];
 	};

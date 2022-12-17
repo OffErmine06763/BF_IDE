@@ -256,6 +256,7 @@
     <ClCompile Include="editor.cpp" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="imgui_stdlib.cpp" />
+    <ClCompile Include="imgui_coloredtext.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="path_node.cpp" />
     <ClCompile Include="runner.cpp" />
@@ -279,9 +280,6 @@
     <None Include="..\..\misc\debuggers\imgui.natvis" />
     <None Include="..\README.txt" />
     <None Include="data.bfidedata" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="tests.bf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

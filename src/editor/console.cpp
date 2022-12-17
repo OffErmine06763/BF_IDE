@@ -18,7 +18,8 @@ namespace bfide {
 		write(std::string(line));
 	}
 	void Console::write(char c) {
-		write(std::string(1, c));
+		if (isgraph(c) || c == '\n' || c == ' ' || c == '\t')
+			write(std::string(1, c));
 	}
 
 	void Console::requestInput() {
@@ -50,33 +51,10 @@ namespace bfide {
 				m_editor->notifyInputReceived();
 			}
 		}
-
-		/*
-		int flags = (m_inputRequested ? 0 : ImGuiInputTextFlags_ReadOnly) | ImGuiInputTextFlags_CtrlEnterForNewLine | ImGuiInputTextFlags_EnterReturnsTrue;
-		if (ImGui::InputTextMultiline("##console", &m_text, { consoleSize.x * 0.9f, consoleSize.y * 0.9f }, flags)) {
-			char input;
-			bool found = false;
-			for (int64_t i = m_text.size() - 1; i >= 0; i--) {
-				if (m_text[i] != ' ') {
-					if (m_text[i] == '$') {
-						break;
-					}
-					found = true;
-					input = m_text[i];
-					break;
-				}
-			}
-			if (found) {
-				m_inputReceived = true;
-				m_inputRequested = false;
-				m_input = input;
-				m_text.push_back('\n');
-				Editor::notifyInputReceived();
-			}
-			if (!found) {
-				m_text.append("\n$ ");
-			}
+		if (m_hasProgBar) {
+			ImGui::ProgressBar(m_progBarPercentage, ImVec2(0.0f, 0.0f));
+			ImGui::SameLine();
+			ImGui::Text(m_progBarLabel.c_str());
 		}
-		*/
 	}
 }
