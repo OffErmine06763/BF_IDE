@@ -5,14 +5,14 @@
 #include <vector>
 
 namespace UnitTests {
-	class UnitTestsClass;
+	class ConsoleTestsClass;
 }
 
 namespace bfide {
 	class Editor;
 
 	class Console {
-		friend UnitTests::UnitTestsClass;
+		friend UnitTests::ConsoleTestsClass;
 	public:
 		void init(Editor* editor) {
 			this->m_editor = editor;

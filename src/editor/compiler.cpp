@@ -16,10 +16,8 @@ namespace bfide {
 		m_cppPath = m_compilePath / CPP_FILENAME;
 
 		m_compilerThread = std::thread([=]() {
-			if (m_editor != nullptr) {
-				m_editor->output("Compilation started\n");
-				m_editor->setUpProgressBar("compiling");
-			}
+			m_editor->output("Compilation started\n");
+			m_editor->setUpProgressBar("compiling");
 			std::string fileName = file->getName(), error;
 
 			CompileResult res = compileFile(fileName, error);
@@ -40,15 +38,13 @@ namespace bfide {
 				m_code = m_ss.str();
 				m_ss.str("");
 				m_lastCompSucc = save();
-				if (m_editor != nullptr)
-					m_editor->setUpProgressBar("creating executable");
+				m_editor->setUpProgressBar("creating executable");
 				toExecutable();
 				m_compiling = false;
 				m_compilerThread.detach();
 			}
 
-			if (m_editor != nullptr)
-				m_editor->removeProgressBar();
+			m_editor->removeProgressBar();
 		});
 	}
 
@@ -80,14 +76,12 @@ namespace bfide {
 		m_compilePath = m_path / "generated";
 		m_mergedPath = m_compilePath / "merged.bf";
 
-		if (m_editor != nullptr)
-			m_editor->output("Compilation started\n");
+		m_editor->output("Compilation started\n");
 		std::string fileName = file->getName(), error;
 
 		CompileResult res = compileFile(fileName, error);
 		if (res == ERROR) {
-			if (m_editor != nullptr)
-				m_editor->compileError(error);
+			m_editor->compileError(error);
 			m_compiling = false;
 			m_ss.str("");
 			m_lastCompSucc = false;
@@ -111,14 +105,12 @@ namespace bfide {
 		if (!m_compiling)
 			return ABORT;
 
-		if (m_editor != nullptr)
-			m_editor->output("Compiling: " + filename + '\n');
+		m_editor->output("Compiling: " + filename + '\n');
 
 		std::filesystem::path currPath = m_path / filename;
 		std::ifstream in(currPath);
 		if (!in.is_open()) {
-			if (m_editor != nullptr)
-				m_editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
+			m_editor->compileError(std::format("Error opening file: {}\n", currPath.string()));
 			return ERROR;
 		}
 
@@ -276,8 +268,7 @@ namespace bfide {
 		out << m_code;
 		out.close();
 
-		if (m_editor != nullptr)
-			m_editor->output("Done\n\n");
+		m_editor->output("Done\n\n");
 		return true;
 	}
 	bool Compiler::toExecutable() {
@@ -318,8 +309,7 @@ namespace bfide {
 			default:
 				break;
 			}
-			if (m_editor != nullptr)
-				m_editor->updateProgressBar((float)i / m_code.length());
+			m_editor->updateProgressBar((float)i / m_code.length());
 			std::this_thread::sleep_for(std::chrono::duration<long long, std::milli>(25));
 		}
 		dest = std::format(TEMPLATE_CPP, Runner::max_size, dest);

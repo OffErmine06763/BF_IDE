@@ -17,7 +17,7 @@
 namespace bfide {
 	class Editor {
 	public:
-		Editor();
+		Editor(Console* console, Compiler* compiler, Runner* runner);
 		~Editor();
 		void init(GLFWwindow* window);
 		void render(GLFWwindow* window);
@@ -26,18 +26,18 @@ namespace bfide {
 		}
 
 		void output(const std::string& line) {
-			m_console.write(line);
+			m_console->write(line);
 		}
 		void output(const char* const line) {
-			m_console.write(line);
+			m_console->write(line);
 		}
 		void output(char line) {
-			m_console.write(line);
+			m_console->write(line);
 		}
 		void compileError(const std::string& line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+			m_console->setColor(Console::RED);
+			m_console->write(line);
+			m_console->setColor(Console::WHITE);
 		}
 		void compileError(const char* const line) {
 			compileError(std::string(line));
@@ -46,9 +46,9 @@ namespace bfide {
 			compileError(std::string(1, c));
 		}
 		void runtimeError(const std::string& line) {
-			m_console.setColor(Console::RED);
-			m_console.write(line);
-			m_console.setColor(Console::WHITE);
+			m_console->setColor(Console::RED);
+			m_console->write(line);
+			m_console->setColor(Console::WHITE);
 		}
 		void runtimeError(const char* const line) {
 			runtimeError(std::string(line));
@@ -58,33 +58,33 @@ namespace bfide {
 		}
 
 		void setUpProgressBar(std::string& label) {
-			m_console.initProgBar(label);
+			m_console->initProgBar(label);
 		}
 		void setUpProgressBar(const char* label) {
-			m_console.initProgBar(label);
+			m_console->initProgBar(label);
 		}
 		void updateProgressBar(float percentage) {
-			m_console.updateProgBar(percentage);
+			m_console->updateProgBar(percentage);
 		}
 		void removeProgressBar() {
-			m_console.removeProgBar();
+			m_console->removeProgBar();
 		}
 
 
 		void requestInput() {
-			m_console.requestInput();
+			m_console->requestInput();
 		}
 		uint8_t consumeInput() {
-			return m_console.consumeInput();
+			return m_console->consumeInput();
 		}
 		bool inputReceived() {
-			return m_console.inputReceived();
+			return m_console->inputReceived();
 		}
 		void setColor(const ImVec4& color) {
-			m_console.setColor(color);
+			m_console->setColor(color);
 		}
 		void notifyInputReceived() {
-			m_runner.notifyInputReceived();
+			m_runner->notifyInputReceived();
 		}
 
 
@@ -98,10 +98,10 @@ namespace bfide {
 		void renderFileSavePopup();
 		void renderConsole(ImVec2& windowSize, ImVec2& windowPos);
 
-	private:
-		Compiler m_compiler;
-		Console m_console;
-		Runner m_runner;
+	protected:
+		Compiler* m_compiler;
+		Console* m_console;
+		Runner* m_runner;
 		std::vector<File> m_openedFiles;
 		int64_t m_currFile = -1, m_moveToFile = -1;
 		std::vector<uint64_t> m_closeQueue, m_closeQueueSave;
@@ -131,6 +131,4 @@ namespace bfide {
 /* TODO:
 *	mock class for Editor (and other classes eventually) to remove:
 *		if (m_editor != nullptr) ...
-*	
-*	
 */

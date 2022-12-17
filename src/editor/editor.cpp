@@ -9,10 +9,14 @@ namespace bfide {
 	const std::string Editor::DATA_FOLDER_KEY = "folder";
 	const std::string Editor::DATA_OPENED_KEY = "opened";
 
-	Editor::Editor() {
-		m_compiler.init(this);
-		m_runner.init(this);
-		m_console.init(this);
+	Editor::Editor(Console* console, Compiler* compiler, Runner* runner) {
+		m_console = console;
+		m_compiler = compiler;
+		m_runner = runner;
+
+		m_compiler->init(this);
+		m_runner->init(this);
+		m_console->init(this);
 	}
 	Editor::~Editor() {
 		std::ofstream out("data.bfidedata");
@@ -134,14 +138,14 @@ namespace bfide {
 		if (ImGui::Button("Reset layout")) {
 			resetLayout(windowSize, windowPos);
 		}
-		if (m_currFile != -1 && !m_runner.isRunning() && !m_compiler.isCopiling()) {
+		if (m_currFile != -1 && !m_runner->isRunning() && !m_compiler->isCopiling()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Compile")) {
-				m_compiler.compile(&m_openedFiles[m_currFile]);
+				m_compiler->compile(&m_openedFiles[m_currFile]);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Compile & Run")) {
-				m_compiler.compile(&m_openedFiles[m_currFile],
+				m_compiler->compile(&m_openedFiles[m_currFile],
 					[](void* data, std::string& code) {
 						Runner* runner = (Runner*)data;
 						runner->run(code);
@@ -149,19 +153,19 @@ namespace bfide {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Generate Exe")) {
-				m_compiler.createExe(&m_openedFiles[m_currFile]);
+				m_compiler->createExe(&m_openedFiles[m_currFile]);
 			}
 		}
-		if (m_compiler.lastCompSucc() && !m_runner.isRunning()) {
+		if (m_compiler->lastCompSucc() && !m_runner->isRunning()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Run")) {
-				m_runner.run(m_compiler.getCompiledCode());
+				m_runner->run(m_compiler->getCompiledCode());
 			}
 		}
-		if (m_runner.isRunning()) {
+		if (m_runner->isRunning()) {
 			ImGui::SameLine();
 			if (ImGui::Button("Stop")) {
-				m_runner.stop();
+				m_runner->stop();
 			}
 		}
 		ImGui::End();
@@ -402,7 +406,7 @@ namespace bfide {
 			consoleSize = ImGui::GetWindowSize();
 		}
 
-		m_console.render(consoleSize);
+		m_console->render(consoleSize);
 
 		ImGui::End();
 	}

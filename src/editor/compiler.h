@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace UnitTests {
-	class UnitTestsClass;
+	class CompilerTestsClass;
 }
 
 namespace bfide {
@@ -17,7 +17,7 @@ namespace bfide {
 	class Editor;
 
 	class Compiler {
-		friend UnitTests::UnitTestsClass;
+		friend UnitTests::CompilerTestsClass;
 	public:
 		~Compiler() {
 			if (m_compiling) {

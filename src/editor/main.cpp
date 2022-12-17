@@ -477,7 +477,11 @@ int main(int, char**)
 	}
 
 	// Our state
-	bfide::Editor editor;
+	bfide::Console console;
+	bfide::Compiler compiler;
+	bfide::Runner runner;
+
+	bfide::Editor editor(&console, &compiler, &runner);
 	editor.init(window);
 
 	// Main loop
