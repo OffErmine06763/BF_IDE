@@ -67,9 +67,28 @@ namespace UnitTests {
 			compiler.init(&dummyEditor);
 			compiler.m_compiling = true;
 
+			std::vector<std::pair<std::vector<std::string>, CompileResult>> tests = IncludesValidation_CreateTestCases();
+
+			// esecuzione test
+			std::string name = "Test", error;
+			for (std::pair<std::vector<std::string>, CompileResult>& testCase : tests) {
+				for (std::string& str : testCase.first) {
+					Logger::WriteMessage((str + '\n').c_str());
+				}
+				CompileResult res = compiler.parseFile(testCase.first, name, error, false);
+				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
+					(testCase.second == SUCCESS ? 1 : 0),
+					(res == SUCCESS ? 1 : 0)).c_str());
+				Assert::AreEqual(
+					(testCase.second == SUCCESS ? 1 : 0),
+					(res == SUCCESS ? 1 : 0),
+					std::wstring(error.begin(), error.end()).c_str());
+			}
+		}
+
+		std::vector<std::pair<std::vector<std::string>, CompileResult>> IncludesValidation_CreateTestCases() {
 			std::ifstream namesFile(TEST_CASE_DIRECTORY + "bf/compile_tests/names.txt");
 			std::ifstream parFile(TEST_CASE_DIRECTORY + "bf/compile_tests/par.txt");
-
 			Assert::AreEqual(true, namesFile.is_open() && parFile.is_open(), L"Faild to open files");
 
 			int parCount, namesCount;
@@ -112,7 +131,7 @@ namespace UnitTests {
 					std::string& currName = names[n];
 					std::string currTestCode = currPar;
 					int ind = 0;
-					while ((ind = currTestCode.find("tests", ind)) != std::string::npos) 
+					while ((ind = currTestCode.find("tests", ind)) != std::string::npos)
 						currTestCode = currTestCode.replace(ind, 5, currName);
 
 					std::vector<std::string> currTest;
@@ -127,24 +146,10 @@ namespace UnitTests {
 					tests.push_back({ currTest, correctResults[n] });
 				}
 			}
-
-			// esecuzione test
-			std::string name = "Test", error;
-			for (std::pair<std::vector<std::string>, CompileResult>& testCase : tests) {
-				for (std::string& str : testCase.first) {
-					Logger::WriteMessage((str + '\n').c_str());
-				}
-				CompileResult res = compiler.parseFile(testCase.first, name, error, false);
-				Logger::WriteMessage(std::format("Expected: <{}> - Actual: <{}>\n",
-					(testCase.second == SUCCESS ? 1 : 0),
-					(res == SUCCESS ? 1 : 0)).c_str());
-				Assert::AreEqual(
-					(testCase.second == SUCCESS ? 1 : 0),
-					(res == SUCCESS ? 1 : 0),
-					std::wstring(error.begin(), error.end()).c_str());
-			}
 			namesFile.close();
 			parFile.close();
+
+			return tests;
 		}
 	};
 }

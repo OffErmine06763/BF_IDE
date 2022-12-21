@@ -15,6 +15,8 @@ namespace UnitTests {
 	public:
 		TEST_METHOD(Test_ConsoleOut) {
 			bfide::Console console;
+
+
 			std::string str = "ciao\nmondo", str2 = "\ntest";
 			console.write(str);
 			Assert::AreEqual(str, console.m_text);
